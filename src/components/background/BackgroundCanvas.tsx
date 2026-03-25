@@ -1,373 +1,328 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import * as THREE from "three";
+import React, { useEffect, useRef, useCallback } from "react";
 
-// ── Performance tier detection ──
-function usePerformanceTier() {
-  const [tier, setTier] = useState<"high" | "medium" | "low">("high");
-
-  useEffect(() => {
-    const isMobile = window.innerWidth < 768;
-    const cores = navigator.hardwareConcurrency || 2;
-
-    if (isMobile || cores < 4) {
-      setTier("low");
-    } else if (cores < 8) {
-      setTier("medium");
-    }
-  }, []);
-
-  return tier;
+// ── Types ──
+interface Node {
+  x: number;
+  y: number;
+  baseX: number;
+  baseY: number;
+  radius: number;
+  glowRadius: number;
+  color: string;
+  glowColor: string;
+  phase: number;
+  speed: number;
 }
 
-// ── Mouse tracker ──
-function useMousePosition() {
-  const mouse = useRef(new THREE.Vector2(0, 0));
-
-  useEffect(() => {
-    const onMove = (e: MouseEvent) => {
-      mouse.current.x = (e.clientX / window.innerWidth) * 2 - 1;
-      mouse.current.y = -(e.clientY / window.innerHeight) * 2 + 1;
-    };
-    window.addEventListener("mousemove", onMove);
-    return () => window.removeEventListener("mousemove", onMove);
-  }, []);
-
-  return mouse;
+interface Edge {
+  from: number;
+  to: number;
 }
 
-// ── Neural Network Nodes ──
-function NeuralNetwork({ nodeCount }: { nodeCount: number }) {
-  const pointsRef = useRef<THREE.Points>(null);
-  const linesRef = useRef<THREE.LineSegments>(null);
-  const mouse = useMousePosition();
-
-  const { positions, basePositions, colors, edges } = React.useMemo(() => {
-    const pos = new Float32Array(nodeCount * 3);
-    const base = new Float32Array(nodeCount * 3);
-    const col = new Float32Array(nodeCount * 3);
-
-    const accentBlue = new THREE.Color("#00D4FF");
-    const accentPurple = new THREE.Color("#7B2FFF");
-    const nodeGold = new THREE.Color("#FFB847");
-
-    for (let i = 0; i < nodeCount; i++) {
-      const x = (Math.random() - 0.5) * 20;
-      const y = (Math.random() - 0.5) * 14;
-      const z = (Math.random() - 0.5) * 6 - 2;
-      pos[i * 3] = x;
-      pos[i * 3 + 1] = y;
-      pos[i * 3 + 2] = z;
-      base[i * 3] = x;
-      base[i * 3 + 1] = y;
-      base[i * 3 + 2] = z;
-
-      const r = Math.random();
-      const color = r < 0.5 ? accentBlue : r < 0.8 ? accentPurple : nodeGold;
-      col[i * 3] = color.r;
-      col[i * 3 + 1] = color.g;
-      col[i * 3 + 2] = color.b;
-    }
-
-    // Build edges: connect each node to 2-3 nearest neighbors
-    const edgePositions: number[] = [];
-    for (let i = 0; i < nodeCount; i++) {
-      const ix = pos[i * 3], iy = pos[i * 3 + 1], iz = pos[i * 3 + 2];
-      const distances: { idx: number; dist: number }[] = [];
-      for (let j = 0; j < nodeCount; j++) {
-        if (i === j) continue;
-        const dx = pos[j * 3] - ix;
-        const dy = pos[j * 3 + 1] - iy;
-        const dz = pos[j * 3 + 2] - iz;
-        distances.push({ idx: j, dist: Math.sqrt(dx * dx + dy * dy + dz * dz) });
-      }
-      distances.sort((a, b) => a.dist - b.dist);
-      const neighbors = distances.slice(0, 2 + Math.floor(Math.random() * 2));
-      for (const n of neighbors) {
-        if (n.dist < 6) {
-          edgePositions.push(ix, iy, iz, pos[n.idx * 3], pos[n.idx * 3 + 1], pos[n.idx * 3 + 2]);
-        }
-      }
-    }
-
-    return {
-      positions: pos,
-      basePositions: base,
-      colors: col,
-      edges: new Float32Array(edgePositions),
-    };
-  }, [nodeCount]);
-
-  useFrame(({ clock }) => {
-    if (!pointsRef.current) return;
-    const time = clock.getElapsedTime();
-    const posArray = pointsRef.current.geometry.attributes.position.array as Float32Array;
-    const mx = mouse.current.x * 10;
-    const my = mouse.current.y * 7;
-
-    for (let i = 0; i < nodeCount; i++) {
-      const bx = basePositions[i * 3];
-      const by = basePositions[i * 3 + 1];
-      const bz = basePositions[i * 3 + 2];
-
-      // Ambient drift
-      const driftX = Math.sin(time * 0.3 + i * 1.7) * 0.3;
-      const driftY = Math.cos(time * 0.25 + i * 2.3) * 0.25;
-      const driftZ = Math.sin(time * 0.2 + i * 0.9) * 0.15;
-
-      // Mouse attraction
-      const dx = mx - bx;
-      const dy = my - by;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      const attraction = Math.max(0, 1 - dist / 8) * 0.8;
-
-      posArray[i * 3] = bx + driftX + dx * attraction * 0.15;
-      posArray[i * 3 + 1] = by + driftY + dy * attraction * 0.15;
-      posArray[i * 3 + 2] = bz + driftZ;
-    }
-    pointsRef.current.geometry.attributes.position.needsUpdate = true;
-
-    // Update edges
-    if (linesRef.current) {
-      const linePos = linesRef.current.geometry.attributes.position.array as Float32Array;
-      // Edge positions are pairs - update based on current node positions
-      let edgeIdx = 0;
-      for (let i = 0; i < nodeCount && edgeIdx < linePos.length; i++) {
-        const ix = posArray[i * 3], iy = posArray[i * 3 + 1], iz = posArray[i * 3 + 2];
-        for (let j = i + 1; j < nodeCount && edgeIdx < linePos.length; j++) {
-          const jx = posArray[j * 3], jy = posArray[j * 3 + 1], jz = posArray[j * 3 + 2];
-          const dx = jx - ix, dy = jy - iy, dz = jz - iz;
-          const d = Math.sqrt(dx * dx + dy * dy + dz * dz);
-          if (d < 5) {
-            linePos[edgeIdx++] = ix;
-            linePos[edgeIdx++] = iy;
-            linePos[edgeIdx++] = iz;
-            linePos[edgeIdx++] = jx;
-            linePos[edgeIdx++] = jy;
-            linePos[edgeIdx++] = jz;
-          }
-        }
-      }
-      linesRef.current.geometry.attributes.position.needsUpdate = true;
-    }
-  });
-
-  return (
-    <>
-      <points ref={pointsRef}>
-        <bufferGeometry>
-          <bufferAttribute
-            attach="attributes-position"
-            args={[positions, 3]}
-          />
-          <bufferAttribute
-            attach="attributes-color"
-            args={[colors, 3]}
-          />
-        </bufferGeometry>
-        <pointsMaterial
-          size={3}
-          vertexColors
-          transparent
-          opacity={0.8}
-          sizeAttenuation
-          blending={THREE.AdditiveBlending}
-          depthWrite={false}
-        />
-      </points>
-      <lineSegments ref={linesRef}>
-        <bufferGeometry>
-          <bufferAttribute
-            attach="attributes-position"
-            args={[edges, 3]}
-          />
-        </bufferGeometry>
-        <lineBasicMaterial
-          color="#7B2FFF"
-          transparent
-          opacity={0.08}
-          blending={THREE.AdditiveBlending}
-          depthWrite={false}
-        />
-      </lineSegments>
-    </>
-  );
-}
-
-// ── Spacetime Grid ──
-function SpacetimeGrid() {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const mouse = useMousePosition();
-
-  const { geometry, originalPositions } = React.useMemo(() => {
-    const geo = new THREE.PlaneGeometry(35, 35, 60, 60);
-    const orig = new Float32Array(geo.attributes.position.array);
-    return { geometry: geo, originalPositions: orig };
-  }, []);
-
-  useFrame(({ clock }) => {
-    if (!meshRef.current) return;
-    const time = clock.getElapsedTime();
-    const posArray = meshRef.current.geometry.attributes.position.array as Float32Array;
-    const mx = mouse.current.x * 12;
-    const my = mouse.current.y * 12;
-
-    for (let i = 0; i < posArray.length / 3; i++) {
-      const ox = originalPositions[i * 3];
-      const oy = originalPositions[i * 3 + 1];
-
-      const dx = ox - mx;
-      const dy = oy - my;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      const warp = -2.5 * Math.exp(-(dist * dist) / 18);
-
-      // Subtle ambient wave
-      const wave = Math.sin(ox * 0.3 + time * 0.4) * Math.cos(oy * 0.3 + time * 0.3) * 0.2;
-
-      posArray[i * 3 + 2] = warp + wave;
-    }
-    meshRef.current.geometry.attributes.position.needsUpdate = true;
-  });
-
-  return (
-    <mesh ref={meshRef} geometry={geometry} rotation={[-Math.PI / 2.5, 0, 0]} position={[0, -6, -5]}>
-      <meshBasicMaterial
-        color="#7B2FFF"
-        wireframe
-        transparent
-        opacity={0.06}
-        blending={THREE.AdditiveBlending}
-        depthWrite={false}
-      />
-    </mesh>
-  );
-}
-
-// ── Floating Particles ──
-function Particles({ count }: { count: number }) {
-  const pointsRef = useRef<THREE.Points>(null);
-  const mouse = useMousePosition();
-
-  const positions = React.useMemo(() => {
-    const pos = new Float32Array(count * 3);
-    for (let i = 0; i < count; i++) {
-      pos[i * 3] = (Math.random() - 0.5) * 30;
-      pos[i * 3 + 1] = (Math.random() - 0.5) * 20;
-      pos[i * 3 + 2] = (Math.random() - 0.5) * 15 - 3;
-    }
-    return pos;
-  }, [count]);
-
-  useFrame(({ clock }) => {
-    if (!pointsRef.current) return;
-    const time = clock.getElapsedTime();
-    const posArray = pointsRef.current.geometry.attributes.position.array as Float32Array;
-
-    for (let i = 0; i < count; i++) {
-      posArray[i * 3 + 1] += Math.sin(time * 0.1 + i) * 0.002;
-      posArray[i * 3] += Math.cos(time * 0.08 + i * 0.5) * 0.001;
-    }
-    pointsRef.current.geometry.attributes.position.needsUpdate = true;
-  });
-
-  return (
-    <points ref={pointsRef}>
-      <bufferGeometry>
-        <bufferAttribute
-          attach="attributes-position"
-          args={[positions, 3]}
-        />
-      </bufferGeometry>
-      <pointsMaterial
-        size={1.5}
-        color="#00D4FF"
-        transparent
-        opacity={0.15}
-        sizeAttenuation
-        blending={THREE.AdditiveBlending}
-        depthWrite={false}
-      />
-    </points>
-  );
-}
-
-// ── Scene orchestrator ──
-function Scene({ tier }: { tier: "high" | "medium" }) {
-  const nodeCount = tier === "high" ? 50 : 30;
-  const particleCount = tier === "high" ? 300 : 150;
-
-  return (
-    <>
-      <NeuralNetwork nodeCount={nodeCount} />
-      <SpacetimeGrid />
-      {tier === "high" && <Particles count={particleCount} />}
-    </>
-  );
-}
-
-// ── CSS Fallback for mobile ──
-function CSSFallback() {
-  return (
-    <div className="fixed inset-0 z-0">
-      <div
-        className="absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(ellipse at 30% 20%, rgba(0, 212, 255, 0.08) 0%, transparent 50%), radial-gradient(ellipse at 70% 60%, rgba(123, 47, 255, 0.06) 0%, transparent 50%), radial-gradient(ellipse at 50% 80%, rgba(255, 184, 71, 0.04) 0%, transparent 40%)",
-        }}
-      />
-      {/* Animated dots */}
-      <div className="absolute inset-0 overflow-hidden">
-        {Array.from({ length: 20 }).map((_, i) => (
-          <div
-            key={i}
-            className="absolute rounded-full bg-accent-blue/20"
-            style={{
-              width: `${2 + Math.random() * 3}px`,
-              height: `${2 + Math.random() * 3}px`,
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animation: `pulse ${3 + Math.random() * 4}s ease-in-out infinite`,
-              animationDelay: `${Math.random() * 5}s`,
-            }}
-          />
-        ))}
-      </div>
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 0.1; transform: scale(1); }
-          50% { opacity: 0.4; transform: scale(1.5); }
-        }
-      `}</style>
-    </div>
-  );
-}
-
-// ── Main export ──
-import React from "react";
-
+// ── Canvas-based background ──
 export default function BackgroundCanvas() {
-  const tier = usePerformanceTier();
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const mouseRef = useRef({ x: -1000, y: -1000 });
+  const animRef = useRef<number>(0);
+  const nodesRef = useRef<Node[]>([]);
+  const edgesRef = useRef<Edge[]>([]);
+  const isMobileRef = useRef(false);
 
-  if (tier === "low") {
-    return <CSSFallback />;
-  }
+  const initScene = useCallback((w: number, h: number) => {
+    isMobileRef.current = w < 768;
+    const nodeCount = isMobileRef.current ? 12 : 25;
+    const nodes: Node[] = [];
+
+    // Place nodes in a natural cluster, biased toward center
+    for (let i = 0; i < nodeCount; i++) {
+      // Use gaussian-like distribution for clustering
+      const angle = Math.random() * Math.PI * 2;
+      const radius = (Math.random() * 0.3 + 0.1) * Math.min(w, h);
+      const cx = w * 0.5 + Math.cos(angle) * radius * (0.8 + Math.random() * 0.6);
+      const cy = h * 0.45 + Math.sin(angle) * radius * (0.6 + Math.random() * 0.4);
+
+      const x = Math.max(50, Math.min(w - 50, cx));
+      const y = Math.max(50, Math.min(h - 50, cy));
+
+      const rnd = Math.random();
+      let color: string, glowColor: string;
+      if (rnd < 0.4) {
+        // Gold nodes (like Gemini reference)
+        color = "rgba(255, 184, 71, 0.7)";
+        glowColor = "rgba(255, 184, 71, 0.12)";
+      } else if (rnd < 0.75) {
+        // Cyan nodes
+        color = "rgba(0, 212, 255, 0.6)";
+        glowColor = "rgba(0, 212, 255, 0.08)";
+      } else {
+        // Purple nodes
+        color = "rgba(123, 47, 255, 0.5)";
+        glowColor = "rgba(123, 47, 255, 0.08)";
+      }
+
+      const nodeRadius = isMobileRef.current
+        ? 1.5 + Math.random() * 2
+        : 2 + Math.random() * 3;
+
+      nodes.push({
+        x, y,
+        baseX: x,
+        baseY: y,
+        radius: nodeRadius,
+        glowRadius: nodeRadius * (8 + Math.random() * 12),
+        color,
+        glowColor,
+        phase: Math.random() * Math.PI * 2,
+        speed: 0.2 + Math.random() * 0.4,
+      });
+    }
+
+    // Build edges: connect to 1-2 nearest neighbors within distance
+    const edges: Edge[] = [];
+    const maxDist = Math.min(w, h) * 0.35;
+    for (let i = 0; i < nodes.length; i++) {
+      const dists: { idx: number; dist: number }[] = [];
+      for (let j = 0; j < nodes.length; j++) {
+        if (i === j) continue;
+        const dx = nodes[j].baseX - nodes[i].baseX;
+        const dy = nodes[j].baseY - nodes[i].baseY;
+        dists.push({ idx: j, dist: Math.sqrt(dx * dx + dy * dy) });
+      }
+      dists.sort((a, b) => a.dist - b.dist);
+      const count = 1 + Math.floor(Math.random() * 2);
+      for (let k = 0; k < count && k < dists.length; k++) {
+        if (dists[k].dist < maxDist) {
+          // Avoid duplicates
+          const exists = edges.some(
+            (e) => (e.from === i && e.to === dists[k].idx) || (e.from === dists[k].idx && e.to === i)
+          );
+          if (!exists) edges.push({ from: i, to: dists[k].idx });
+        }
+      }
+    }
+
+    nodesRef.current = nodes;
+    edgesRef.current = edges;
+  }, []);
+
+  const drawGrid = useCallback((ctx: CanvasRenderingContext2D, w: number, h: number, time: number, mx: number, my: number) => {
+    // Perspective spacetime grid at the bottom
+    const gridY = h * 0.65; // Start grid from 65% down
+    const horizonY = h * 0.45;
+    const gridLines = 30;
+    const gridCols = 40;
+
+    ctx.save();
+    ctx.globalAlpha = 0.15;
+
+    // Horizontal lines (receding into horizon)
+    for (let i = 0; i <= gridLines; i++) {
+      const t = i / gridLines;
+      const perspective = Math.pow(t, 1.8); // Perspective compression
+      const y = horizonY + (h - horizonY) * perspective;
+      const spread = 0.3 + perspective * 0.7;
+
+      ctx.beginPath();
+      const segments = 60;
+      for (let s = 0; s <= segments; s++) {
+        const sx = (s / segments) * w;
+        // Warp based on mouse proximity
+        const distToMouse = Math.sqrt((sx - mx) ** 2 + (y - my) ** 2);
+        const warp = Math.exp(-(distToMouse ** 2) / (40000 + 20000 * perspective)) * 15 * perspective;
+        const wave = Math.sin(sx * 0.008 + time * 0.5) * 2 * perspective;
+        const py = y + warp + wave;
+
+        if (s === 0) ctx.moveTo(sx, py);
+        else ctx.lineTo(sx, py);
+      }
+
+      const alpha = 0.03 + perspective * 0.08;
+      ctx.strokeStyle = `rgba(123, 47, 255, ${alpha})`;
+      ctx.lineWidth = 0.5 + perspective * 0.5;
+      ctx.stroke();
+    }
+
+    // Vertical lines (converging to vanishing point)
+    const vanishX = w * 0.5;
+    for (let i = 0; i <= gridCols; i++) {
+      const t = i / gridCols;
+      const bottomX = t * w * 1.4 - w * 0.2;
+
+      ctx.beginPath();
+      const steps = 40;
+      for (let s = 0; s <= steps; s++) {
+        const st = s / steps;
+        const perspective = Math.pow(st, 1.8);
+        const y = horizonY + (h - horizonY) * perspective;
+        const x = vanishX + (bottomX - vanishX) * perspective;
+
+        // Apply warp
+        const distToMouse = Math.sqrt((x - mx) ** 2 + (y - my) ** 2);
+        const warp = Math.exp(-(distToMouse ** 2) / 50000) * 12 * perspective;
+        const py = y + warp;
+
+        if (s === 0) ctx.moveTo(x, py);
+        else ctx.lineTo(x, py);
+      }
+
+      const alpha = 0.02 + 0.04 * (1 - Math.abs(t - 0.5) * 2);
+      ctx.strokeStyle = `rgba(123, 47, 255, ${alpha})`;
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }, []);
+
+  const drawScene = useCallback((ctx: CanvasRenderingContext2D, w: number, h: number, time: number) => {
+    const mx = mouseRef.current.x;
+    const my = mouseRef.current.y;
+    const nodes = nodesRef.current;
+    const edges = edgesRef.current;
+
+    // Clear
+    ctx.clearRect(0, 0, w, h);
+
+    // Draw spacetime grid
+    drawGrid(ctx, w, h, time, mx, my);
+
+    // Update node positions (subtle drift + mouse attraction)
+    for (const node of nodes) {
+      const driftX = Math.sin(time * node.speed + node.phase) * 8;
+      const driftY = Math.cos(time * node.speed * 0.7 + node.phase + 1) * 6;
+
+      // Gentle mouse attraction
+      const dx = mx - node.baseX;
+      const dy = my - node.baseY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const attraction = Math.max(0, 1 - dist / 300) * 0.12;
+
+      node.x = node.baseX + driftX + dx * attraction;
+      node.y = node.baseY + driftY + dy * attraction;
+    }
+
+    // Draw edges (connections between nodes)
+    for (const edge of edges) {
+      const a = nodes[edge.from];
+      const b = nodes[edge.to];
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const maxDist = Math.min(w, h) * 0.4;
+      if (dist > maxDist) continue;
+
+      const alpha = (1 - dist / maxDist) * 0.12;
+
+      // Draw connection as gradient line
+      const gradient = ctx.createLinearGradient(a.x, a.y, b.x, b.y);
+      gradient.addColorStop(0, `rgba(0, 212, 255, ${alpha})`);
+      gradient.addColorStop(0.5, `rgba(123, 47, 255, ${alpha * 0.7})`);
+      gradient.addColorStop(1, `rgba(255, 184, 71, ${alpha})`);
+
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y);
+      // Slight curve for organic feel
+      const midX = (a.x + b.x) / 2 + Math.sin(time + edge.from) * 5;
+      const midY = (a.y + b.y) / 2 + Math.cos(time + edge.to) * 5;
+      ctx.quadraticCurveTo(midX, midY, b.x, b.y);
+      ctx.strokeStyle = gradient;
+      ctx.lineWidth = 0.8;
+      ctx.stroke();
+    }
+
+    // Draw nodes with glow
+    for (const node of nodes) {
+      const pulse = 0.85 + Math.sin(time * 1.5 + node.phase) * 0.15;
+
+      // Outer glow
+      const glow = ctx.createRadialGradient(
+        node.x, node.y, 0,
+        node.x, node.y, node.glowRadius * pulse
+      );
+      glow.addColorStop(0, node.glowColor);
+      glow.addColorStop(1, "transparent");
+
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, node.glowRadius * pulse, 0, Math.PI * 2);
+      ctx.fillStyle = glow;
+      ctx.fill();
+
+      // Core dot
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, node.radius * pulse, 0, Math.PI * 2);
+      ctx.fillStyle = node.color;
+      ctx.fill();
+    }
+
+    // Draw a few tiny star particles
+    if (!isMobileRef.current) {
+      ctx.save();
+      for (let i = 0; i < 60; i++) {
+        const px = ((i * 137.508) % w); // Golden angle distribution
+        const py = ((i * 97.3) % h);
+        const twinkle = 0.1 + Math.sin(time * 0.8 + i * 2.1) * 0.08;
+        ctx.beginPath();
+        ctx.arc(px, py, 0.5 + Math.sin(i) * 0.3, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(200, 220, 255, ${twinkle})`;
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+  }, [drawGrid]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const resize = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      canvas.style.width = `${w}px`;
+      canvas.style.height = `${h}px`;
+      ctx.scale(dpr, dpr);
+      initScene(w, h);
+    };
+
+    resize();
+    window.addEventListener("resize", resize);
+
+    const onMouseMove = (e: MouseEvent) => {
+      mouseRef.current.x = e.clientX;
+      mouseRef.current.y = e.clientY;
+    };
+    window.addEventListener("mousemove", onMouseMove);
+
+    let startTime = performance.now();
+    const animate = (now: number) => {
+      const time = (now - startTime) / 1000;
+      const w = canvas.width / (Math.min(window.devicePixelRatio || 1, 2));
+      const h = canvas.height / (Math.min(window.devicePixelRatio || 1, 2));
+      drawScene(ctx, w, h, time);
+      animRef.current = requestAnimationFrame(animate);
+    };
+
+    animRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      cancelAnimationFrame(animRef.current);
+      window.removeEventListener("resize", resize);
+      window.removeEventListener("mousemove", onMouseMove);
+    };
+  }, [initScene, drawScene]);
 
   return (
-    <div className="fixed inset-0 z-0">
-      <Canvas
-        dpr={[1, 1.5]}
-        gl={{
-          antialias: true,
-          alpha: true,
-          powerPreference: "high-performance",
-        }}
-        camera={{ position: [0, 0, 12], fov: 60 }}
-      >
-        <Scene tier={tier} />
-      </Canvas>
-    </div>
+    <canvas
+      ref={canvasRef}
+      className="fixed inset-0 z-0 pointer-events-none"
+      style={{ background: "transparent" }}
+    />
   );
 }
