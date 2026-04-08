@@ -3,13 +3,13 @@ export const NAV_LINKS = [
   { label: "Experience", href: "#experience" },
   { label: "Projects", href: "#projects" },
   { label: "Skills", href: "#skills" },
-  { label: "Blog", href: "#blog" },
+  { label: "Blog", href: "/blog" },
   { label: "Contact", href: "#contact" },
 ] as const;
 
 export const SOCIAL_LINKS = {
-  linkedin: "https://linkedin.com/in/prakharkothari",
-  github: "https://github.com/prakharkothari",
+  linkedin: "https://www.linkedin.com/in/prakhar-kothari-sde/",
+  github: "https://github.com/kothariprakhar",
   email: "prakhar.kothari@kellogg.northwestern.edu",
 } as const;
 
@@ -242,27 +242,3 @@ export const SKILLS = {
     { name: "Git", icon: "GitBranch" },
   ],
 } as const;
-
-export const BLOG_POSTS = [
-  {
-    id: "ai-product-management",
-    title: "Why AI Product Management is Different",
-    description: "Exploring the unique challenges of building AI-powered products vs. traditional software.",
-    tags: ["AI Strategy", "Product Thinking"],
-    published: false,
-  },
-  {
-    id: "from-engineer-to-pm",
-    title: "From Engineer to PM: What Changes",
-    description: "Reflections on transitioning from building products to defining what gets built.",
-    tags: ["Career", "Product Management"],
-    published: false,
-  },
-  {
-    id: "building-at-intersection",
-    title: "Building at the Intersection of AI & Business",
-    description: "How the Kellogg + AI joint degree shapes my approach to product development.",
-    tags: ["AI", "MBA", "Building"],
-    published: false,
-  },
-] as const;

@@ -1,42 +1,71 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence, useInView } from "framer-motion";
 import { ChevronDown, MapPin } from "lucide-react";
 import { SectionWrapper } from "@/components/layout/SectionWrapper";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { EXPERIENCE } from "@/lib/constants";
 import { cn } from "@/lib/utils";
+import { useSpacetimeWarp } from "@/components/background/useSpacetimeWarp";
+
+const LOSS_VALUES = ["L = 0.89", "L = 0.62", "L = 0.34", "L = 0.15", "L = 0.03"];
 
 function TimelineItem({
   item,
   index,
   isLeft,
+  lossValue,
 }: {
   item: (typeof EXPERIENCE)[number];
   index: number;
   isLeft: boolean;
+  lossValue: string;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const { ref: warpRef, onMouseEnter, onMouseLeave } = useSpacetimeWarp(`exp-${item.id}`, {
+    strength: 20,
+    radius: 200,
+  });
 
   return (
     <motion.div
+      ref={warpRef as React.Ref<HTMLDivElement>}
       initial={{ opacity: 0, x: isLeft ? -40 : 40 }}
       whileInView={{ opacity: 1, x: 0 }}
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
       className={cn(
         "relative md:w-[calc(50%-32px)]",
         isLeft ? "md:mr-auto md:pr-0" : "md:ml-auto md:pl-0"
       )}
     >
-      {/* Timeline node */}
+      {/* Timeline node — desktop */}
       <div
         className={cn(
-          "hidden md:block absolute top-8 w-3 h-3 rounded-full bg-gradient-to-r from-accent-blue to-accent-purple shadow-[0_0_12px_rgba(0,212,255,0.5)]",
-          isLeft ? "-right-[38px]" : "-left-[38px]"
+          "hidden md:flex absolute top-8 items-center gap-2",
+          isLeft ? "-right-[38px] flex-row" : "-left-[38px] flex-row-reverse"
         )}
-      />
+      >
+        <div className="w-3 h-3 rounded-full bg-gradient-to-r from-accent-blue to-accent-purple shadow-[0_0_12px_rgba(0,212,255,0.5)]" />
+      </div>
+
+      {/* Loss label — desktop */}
+      <div
+        className={cn(
+          "hidden md:block absolute top-[34px] font-mono text-[9px] tracking-wider",
+          isLeft
+            ? "-right-[100px] text-left"
+            : "-left-[100px] text-right",
+          index === EXPERIENCE.length - 1
+            ? "text-accent-blue/40"
+            : "text-text-muted/20"
+        )}
+      >
+        {lossValue}
+      </div>
 
       {/* Mobile node */}
       <div className="md:hidden absolute left-0 top-8 w-3 h-3 rounded-full bg-gradient-to-r from-accent-blue to-accent-purple shadow-[0_0_12px_rgba(0,212,255,0.5)]" />
@@ -113,21 +142,112 @@ function TimelineItem({
   );
 }
 
+// Gradient descent contour lines + animated path
+function GradientDescentOverlay() {
+  const ref = useRef<SVGSVGElement>(null);
+  const isInView = useInView(ref, { once: true, amount: 0.3 });
+  const [pathLength, setPathLength] = useState(0);
+  const pathRef = useRef<SVGPathElement>(null);
+
+  useEffect(() => {
+    if (pathRef.current) {
+      setPathLength(pathRef.current.getTotalLength());
+    }
+  }, []);
+
+  // The descent path curves gently as it goes down
+  const descentPath = "M 50 20 C 60 120, 38 220, 55 320 C 68 420, 42 520, 50 620 C 56 720, 44 820, 50 920";
+
+  return (
+    <svg
+      ref={ref}
+      className="hidden md:block absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-[200px] pointer-events-none"
+      viewBox="0 0 100 940"
+      preserveAspectRatio="none"
+      style={{ height: "100%" }}
+    >
+      {/* Contour ellipses — loss landscape topology */}
+      {[180, 400, 620, 840].map((cy, i) => (
+        <g key={i}>
+          <ellipse
+            cx="50"
+            cy={cy}
+            rx={40 - i * 6}
+            ry={60 - i * 8}
+            fill="none"
+            stroke="rgba(0, 212, 255, 0.04)"
+            strokeWidth="0.5"
+          />
+          <ellipse
+            cx="50"
+            cy={cy}
+            rx={30 - i * 4}
+            ry={45 - i * 6}
+            fill="none"
+            stroke="rgba(123, 47, 255, 0.03)"
+            strokeWidth="0.3"
+          />
+        </g>
+      ))}
+
+      {/* Global minimum glow at bottom */}
+      <defs>
+        <radialGradient id="minimumGlow" cx="50%" cy="100%" r="30%">
+          <stop offset="0%" stopColor="rgba(0, 212, 255, 0.12)" />
+          <stop offset="100%" stopColor="rgba(0, 212, 255, 0)" />
+        </radialGradient>
+      </defs>
+      <rect x="0" y="820" width="100" height="120" fill="url(#minimumGlow)" />
+
+      {/* Gradient descent path */}
+      <defs>
+        <linearGradient id="descentGradient" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="rgba(255, 100, 80, 0.4)" />
+          <stop offset="50%" stopColor="rgba(123, 47, 255, 0.35)" />
+          <stop offset="100%" stopColor="rgba(0, 212, 255, 0.5)" />
+        </linearGradient>
+      </defs>
+      <path
+        ref={pathRef}
+        d={descentPath}
+        fill="none"
+        stroke="url(#descentGradient)"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeDasharray={pathLength || 1400}
+        strokeDashoffset={isInView ? 0 : pathLength || 1400}
+        style={{
+          transition: "stroke-dashoffset 2.5s ease-out",
+        }}
+      />
+    </svg>
+  );
+}
+
 export function Experience() {
   return (
     <SectionWrapper id="experience">
       <SectionHeading label="Experience" title="Where I've Built" gradientWord="Built" />
 
       <div className="relative">
-        {/* Timeline line - desktop */}
-        <div className="hidden md:block absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-[2px] bg-gradient-to-b from-accent-blue via-accent-purple to-transparent shadow-[0_0_8px_rgba(0,212,255,0.3)]" />
+        {/* Gradient descent SVG overlay */}
+        <GradientDescentOverlay />
 
-        {/* Timeline line - mobile */}
+        {/* Timeline line — desktop (behind the SVG path) */}
+        <div className="hidden md:block absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-[1px] bg-gradient-to-b from-border-subtle/30 via-border-subtle/10 to-transparent" />
+
+        {/* Timeline line — mobile */}
         <div className="md:hidden absolute left-[5px] top-0 bottom-0 w-[2px] bg-gradient-to-b from-accent-blue via-accent-purple to-transparent" />
 
         <div className="flex flex-col gap-8 md:gap-12">
           {EXPERIENCE.map((item, i) => (
-            <TimelineItem key={item.id} item={item} index={i} isLeft={i % 2 === 0} />
+            <TimelineItem
+              key={item.id}
+              item={item}
+              index={i}
+              isLeft={i % 2 === 0}
+              lossValue={LOSS_VALUES[i] || "L = 0.01"}
+            />
           ))}
         </div>
       </div>

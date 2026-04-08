@@ -7,6 +7,7 @@ import { SectionWrapper } from "@/components/layout/SectionWrapper";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { PROJECTS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
+import { useSpacetimeWarp } from "@/components/background/useSpacetimeWarp";
 
 const typeColors: Record<string, string> = {
   AI: "bg-accent-blue/10 text-accent-blue border-accent-blue/20",
@@ -20,6 +21,14 @@ const typeGradients: Record<string, string> = {
   Engineering: "from-accent-magenta/20 to-accent-magenta/5",
 };
 
+// Bento layout spans for each card index
+const bentoSpans = [
+  "md:col-span-2 md:row-span-2", // Featured large (index 0)
+  "md:col-span-1 md:row-span-1", // Compact (index 1)
+  "md:col-span-1 md:row-span-1", // Compact (index 2)
+  "md:col-span-2 md:row-span-1", // Wide (index 3)
+];
+
 function ProjectCard({
   project,
   index,
@@ -28,30 +37,49 @@ function ProjectCard({
   index: number;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const { ref, onMouseEnter, onMouseLeave } = useSpacetimeWarp(`project-${project.id}`, {
+    strength: 30,
+    radius: 250,
+  });
+
+  const isLarge = index === 0;
+  const imageHeight = isLarge ? "h-48 md:h-64" : "h-36 md:h-44";
 
   return (
     <>
       <motion.div
+        ref={ref as React.Ref<HTMLDivElement>}
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.2 }}
         transition={{ delay: index * 0.1, duration: 0.5 }}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
         className={cn(
-          "group bg-bg-secondary/60 backdrop-blur-sm border border-border-subtle rounded-2xl overflow-hidden hover:border-accent-blue/20 transition-all duration-300 cursor-pointer",
-          project.featured && "md:col-span-2"
+          "group bg-bg-secondary/60 backdrop-blur-sm border border-border-subtle rounded-2xl overflow-hidden hover:border-accent-blue/20 hover:-translate-y-1 transition-all duration-300 cursor-pointer",
+          bentoSpans[index] || "md:col-span-1"
         )}
         onClick={() => setExpanded(true)}
       >
         {/* Image placeholder */}
         <div
           className={cn(
-            "relative h-48 bg-gradient-to-br overflow-hidden",
+            "relative bg-gradient-to-br overflow-hidden",
+            imageHeight,
             typeGradients[project.type]
           )}
         >
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="font-display font-bold text-4xl text-white/10">
-              {project.title.split(" ").map((w) => w[0]).join("")}
+            <span
+              className={cn(
+                "font-display font-bold text-white/10",
+                isLarge ? "text-6xl" : "text-4xl"
+              )}
+            >
+              {project.title
+                .split(" ")
+                .map((w) => w[0])
+                .join("")}
             </span>
           </div>
           <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-bg-secondary/80 to-transparent" />
@@ -69,7 +97,12 @@ function ProjectCard({
             </span>
           </div>
 
-          <h3 className="font-display font-bold text-lg text-text-primary group-hover:text-accent-blue transition-colors">
+          <h3
+            className={cn(
+              "font-display font-bold text-text-primary group-hover:text-accent-blue transition-colors",
+              isLarge ? "text-xl" : "text-lg"
+            )}
+          >
             {project.title}
           </h3>
           <p className="text-text-muted text-sm mt-1">{project.subtitle}</p>
@@ -78,7 +111,7 @@ function ProjectCard({
           </p>
 
           <div className="mt-4 flex flex-wrap gap-2">
-            {project.technologies.slice(0, 4).map((tech) => (
+            {project.technologies.slice(0, isLarge ? 6 : 4).map((tech) => (
               <span
                 key={tech}
                 className="px-2 py-0.5 text-[10px] font-mono tracking-wider rounded bg-bg-tertiary text-text-muted"
@@ -184,7 +217,7 @@ export function Projects() {
     <SectionWrapper id="projects">
       <SectionHeading label="Projects" title="Things I've Shipped" gradientWord="Shipped" />
 
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid md:grid-cols-3 gap-6">
         {PROJECTS.map((project, i) => (
           <ProjectCard key={project.id} project={project} index={i} />
         ))}

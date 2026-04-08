@@ -70,8 +70,8 @@ export default function RootLayout({
                 "Computer Vision",
               ],
               sameAs: [
-                "https://linkedin.com/in/prakharkothari",
-                "https://github.com/prakharkothari",
+                "https://www.linkedin.com/in/prakhar-kothari-sde/",
+                "https://github.com/kothariprakhar",
               ],
             }),
           }}

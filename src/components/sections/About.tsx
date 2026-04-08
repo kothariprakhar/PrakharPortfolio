@@ -14,6 +14,43 @@ const iconMap: Record<string, React.ComponentType<{ size?: number; className?: s
   GraduationCap,
 };
 
+// Text reveal component — words fade in with stagger on scroll
+function RevealText({ text, className }: { text: string; className?: string }) {
+  const words = text.split(" ");
+
+  const containerVariants = {
+    hidden: {},
+    visible: {
+      transition: { staggerChildren: 0.03 },
+    },
+  };
+
+  const wordVariants = {
+    hidden: { opacity: 0.15, y: 6 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.4, ease: "easeOut" as const },
+    },
+  };
+
+  return (
+    <motion.p
+      variants={containerVariants}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.5 }}
+      className={className}
+    >
+      {words.map((word, i) => (
+        <motion.span key={i} variants={wordVariants} className="inline-block mr-[0.3em]">
+          {word}
+        </motion.span>
+      ))}
+    </motion.p>
+  );
+}
+
 function StatCounter({
   value,
   suffix,
@@ -39,14 +76,21 @@ function StatCounter({
   }
 
   return (
-    <div ref={ref} className="text-center p-4">
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 10 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.5 }}
+      transition={{ duration: 0.5 }}
+      className="text-center p-4"
+    >
       <div className="font-display font-bold text-2xl md:text-3xl text-text-primary">
         <span className="text-accent-blue">{prefix}</span>
         <motion.span>{display}</motion.span>
         <span className="text-accent-blue">{suffix}</span>
       </div>
       <p className="mt-2 text-text-muted text-xs md:text-sm">{label}</p>
-    </div>
+    </motion.div>
   );
 }
 
@@ -78,7 +122,10 @@ function JourneyCard({
         </div>
         <div>
           <h3 className="font-display font-bold text-lg text-text-primary">{title}</h3>
-          <p className="mt-2 text-text-secondary text-sm leading-relaxed">{description}</p>
+          <RevealText
+            text={description}
+            className="mt-2 text-text-secondary text-sm leading-relaxed"
+          />
         </div>
       </div>
     </motion.div>

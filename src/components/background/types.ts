@@ -16,37 +16,10 @@ export interface NeuralNode {
   screenX: number;
   screenY: number;
   radius: number;
-  sphereVertices: Vec3[];
-  sphereEdges: [number, number][];
-  internalParticles: InternalParticle[];
-  rotationSpeed: number;
-  rotationAxis: Vec3;
+  color: readonly [number, number, number];
   phase: number;
   pulseSpeed: number;
   importance: number;
-}
-
-export interface InternalParticle {
-  theta: number;
-  phi: number;
-  r: number;
-  speed: number;
-  phase: number;
-}
-
-export interface EnergyStream {
-  fromNodeId: number;
-  toNodeId: number;
-  baseControlPoints: Vec2[];
-  branchSeeds: number[];
-  flowParticles: FlowParticle[];
-  intensity: number;
-}
-
-export interface FlowParticle {
-  t: number;
-  speed: number;
-  size: number;
 }
 
 export interface AmbientParticle {

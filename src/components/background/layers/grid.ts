@@ -9,7 +9,8 @@ export function drawSpacetimeGrid(
   time: number,
   mouseX: number,
   mouseY: number,
-  wells: GravityWell[]
+  wells: GravityWell[],
+  alphaMultiplier = 1.0
 ) {
   const { horizonY: horizFrac, horizontalLines, verticalLines, perspectiveExp } = BG.grid;
   const horizonY = h * horizFrac;
@@ -42,7 +43,7 @@ export function drawSpacetimeGrid(
       else ctx.lineTo(sx, py);
     }
 
-    const baseAlpha = 0.025 + perspective * 0.06;
+    const baseAlpha = (0.06 + perspective * 0.12) * alphaMultiplier;
     // Check intensity near wells for color shift
     const midDisp = computeGridDisplacement(w / 2, baseY, wells, mouseX, mouseY, 0, 1);
     const boost = midDisp.intensityBoost;
@@ -51,8 +52,8 @@ export function drawSpacetimeGrid(
     const g = Math.round(gg + (cg - gg) * boost * 0.4);
     const b = Math.round(gb + (cb - gb) * boost * 0.4);
 
-    ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${baseAlpha + boost * 0.04})`;
-    ctx.lineWidth = 0.4 + perspective * 0.6 + boost * 0.3;
+    ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${baseAlpha + boost * 0.08})`;
+    ctx.lineWidth = 0.5 + perspective * 0.8 + boost * 0.3;
     ctx.stroke();
   }
 
@@ -81,11 +82,11 @@ export function drawSpacetimeGrid(
       else ctx.lineTo(x, py);
     }
 
-    // Fade lines near edges
-    const edgeFade = 1 - Math.abs(t - 0.5) * 1.6;
-    const alpha = Math.max(0, 0.015 + 0.035 * edgeFade);
+    // Gentle edge fade — keep verticals visible across full width
+    const edgeFade = 1 - Math.abs(t - 0.5) * 0.6; // 0.7 at edges, 1.0 at center
+    const alpha = (0.08 + 0.06 * edgeFade) * alphaMultiplier;
     ctx.strokeStyle = `rgba(${gr}, ${gg}, ${gb}, ${alpha})`;
-    ctx.lineWidth = 0.4;
+    ctx.lineWidth = 0.8;
     ctx.stroke();
   }
 

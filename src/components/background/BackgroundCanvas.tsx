@@ -1,13 +1,14 @@
 "use client";
 
 import React, { useEffect, useRef, useCallback } from "react";
-import type { NeuralNode, GravityWell, EnergyStream, AmbientParticle, HudReadout, Star } from "./types";
+import type { NeuralNode, GravityWell, AmbientParticle, HudReadout, Star } from "./types";
 import { initStars, renderStaticStarfield, drawTwinkle } from "./layers/starfield";
 import { drawSpacetimeGrid } from "./layers/grid";
 import { initNodes, drawNodes } from "./layers/nodes";
-import { initEnergyStreams, drawEnergyStreams } from "./layers/energyStreams";
 import { initParticles, drawParticles } from "./layers/particles";
 import { initHud, drawHud } from "./layers/hud";
+import { tickDynamicWells, getDynamicWells } from "./gravityWellStore";
+import { BG } from "./config";
 
 export default function BackgroundCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -18,7 +19,6 @@ export default function BackgroundCanvas() {
   const starfieldCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const nodesRef = useRef<NeuralNode[]>([]);
   const wellsRef = useRef<GravityWell[]>([]);
-  const streamsRef = useRef<EnergyStream[]>([]);
   const particlesRef = useRef<AmbientParticle[]>([]);
   const hudRef = useRef<HudReadout[]>([]);
   const isMobileRef = useRef(false);
@@ -26,6 +26,13 @@ export default function BackgroundCanvas() {
   // Mouse (actual and lerped)
   const actualMouseRef = useRef({ x: -1000, y: -1000 });
   const lerpedMouseRef = useRef({ x: -1000, y: -1000 });
+
+  // Cursor light trail buffer
+  const trailRef = useRef<{ x: number; y: number; time: number }[]>([]);
+  const trailFrameRef = useRef(0);
+
+  // Base node well strengths (for hover boosting)
+  const baseWellStrengthsRef = useRef<number[]>([]);
 
   const initScene = useCallback((w: number, h: number, dpr: number) => {
     isMobileRef.current = w < 768;
@@ -40,11 +47,9 @@ export default function BackgroundCanvas() {
     const { nodes, wells } = initNodes(w, h, isMobileRef.current);
     nodesRef.current = nodes;
     wellsRef.current = wells;
+    baseWellStrengthsRef.current = wells.map((w) => w.strength);
 
-    // Layer 4: Energy streams
-    streamsRef.current = initEnergyStreams(nodes);
-
-    // Layer 5: Ambient particles
+    // Ambient particles
     particlesRef.current = initParticles(w, h, isMobileRef.current);
 
     // Layer 6: HUD
@@ -104,10 +109,39 @@ export default function BackgroundCanvas() {
 
       ctx.clearRect(0, 0, w, h);
 
+      // ── Dynamic wells: tick lerps + merge with static wells ──
+      tickDynamicWells(deltaTime);
+      const dynamicWells = getDynamicWells();
+      const allWells: GravityWell[] = [
+        ...wellsRef.current,
+        ...dynamicWells.map((dw) => ({
+          x: dw.x,
+          y: dw.y,
+          strength: dw.currentStrength,
+          radius: dw.radius,
+        })),
+      ];
+
+      // ── Boost node wells on mouse proximity ──
+      const nodes = nodesRef.current;
+      const baseStrengths = baseWellStrengthsRef.current;
+      for (let i = 0; i < nodes.length && i < wellsRef.current.length; i++) {
+        const ndx = lm.x - nodes[i].baseX;
+        const ndy = lm.y - nodes[i].baseY;
+        const dist = Math.sqrt(ndx * ndx + ndy * ndy);
+        const attraction = Math.max(0, 1 - dist / BG.mouse.nodeAttractionRadius);
+        wellsRef.current[i].strength = baseStrengths[i] * (1 + attraction * 2.5);
+      }
+
+      // ── Scroll-driven grid alpha fade ──
+      const scrollY = window.scrollY;
+      const scrollProgress = Math.min(scrollY / h, 1);
+      const gridAlphaMultiplier = 1.0 - scrollProgress * 0.5;
+
       // ── Layer 1: Starfield ──
       if (starfieldCanvasRef.current) {
         ctx.save();
-        ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset transform for drawImage
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.drawImage(starfieldCanvasRef.current, 0, 0);
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         ctx.restore();
@@ -115,15 +149,40 @@ export default function BackgroundCanvas() {
       drawTwinkle(ctx, starsRef.current, time);
 
       // ── Layer 2: Spacetime Grid ──
-      drawSpacetimeGrid(ctx, w, h, time, lm.x, lm.y, wellsRef.current);
+      drawSpacetimeGrid(ctx, w, h, time, lm.x, lm.y, allWells, gridAlphaMultiplier);
 
-      // ── Layer 5: Ambient Particles (behind streams and nodes for depth) ──
+      // ── Cursor light trail ──
+      if (!isMobileRef.current && am.x > 0 && am.y > 0) {
+        trailFrameRef.current++;
+        if (trailFrameRef.current % 2 === 0) {
+          trailRef.current.push({ x: lm.x, y: lm.y, time: now });
+        }
+        // Keep last 500ms of trail
+        const cutoff = now - 500;
+        trailRef.current = trailRef.current.filter((p) => p.time > cutoff);
+
+        const trail = trailRef.current;
+        const len = trail.length;
+        for (let i = 0; i < len; i++) {
+          const age = (now - trail[i].time) / 500; // 0 = newest, 1 = oldest
+          const t = 1 - age;
+          const r = 2 + t * 6;
+          const alpha = t * 0.12;
+          if (alpha < 0.005) continue;
+          const grad = ctx.createRadialGradient(trail[i].x, trail[i].y, 0, trail[i].x, trail[i].y, r);
+          grad.addColorStop(0, `rgba(0, 212, 255, ${alpha})`);
+          grad.addColorStop(1, "rgba(0, 212, 255, 0)");
+          ctx.beginPath();
+          ctx.arc(trail[i].x, trail[i].y, r, 0, Math.PI * 2);
+          ctx.fillStyle = grad;
+          ctx.fill();
+        }
+      }
+
+      // ── Ambient Particles ──
       drawParticles(ctx, particlesRef.current, w, h, time);
 
-      // ── Layer 4: Energy Streams ──
-      drawEnergyStreams(ctx, streamsRef.current, nodesRef.current, time, lm.x, lm.y, deltaTime);
-
-      // ── Layer 3: Neural Nodes (on top) ──
+      // ── Gradient Orbs ──
       drawNodes(ctx, nodesRef.current, time, lm.x, lm.y);
 
       // ── Layer 6: HUD ──

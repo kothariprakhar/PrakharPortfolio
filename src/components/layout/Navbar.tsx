@@ -1,15 +1,49 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { NAV_LINKS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
+import { useSpacetimeWarp } from "@/components/background/useSpacetimeWarp";
+import { MagneticButton } from "@/components/ui/MagneticButton";
+
+function NavLink({ href, label, isActive }: { href: string; label: string; isActive: boolean }) {
+  const { ref, onMouseEnter, onMouseLeave } = useSpacetimeWarp(`nav-${label}`, {
+    strength: 12,
+    radius: 120,
+  });
+
+  return (
+    <Link
+      ref={ref as React.Ref<HTMLAnchorElement>}
+      href={href}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      className={cn(
+        "relative text-sm font-body font-medium transition-colors duration-200",
+        isActive ? "text-text-primary" : "text-text-secondary hover:text-text-primary"
+      )}
+    >
+      {label}
+      <span
+        className={cn(
+          "absolute -bottom-1 left-0 h-[2px] bg-accent-blue transition-all duration-300",
+          isActive ? "w-full" : "w-0"
+        )}
+      />
+    </Link>
+  );
+}
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("");
+  const pathname = usePathname();
+  const isHome = pathname === "/";
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 100);
@@ -18,8 +52,10 @@ export function Navbar() {
   }, []);
 
   useEffect(() => {
+    if (!isHome) return;
     const observers: IntersectionObserver[] = [];
     NAV_LINKS.forEach(({ href }) => {
+      if (!href.startsWith("#")) return;
       const el = document.querySelector(href);
       if (!el) return;
       const observer = new IntersectionObserver(
@@ -32,7 +68,7 @@ export function Navbar() {
       observers.push(observer);
     });
     return () => observers.forEach((o) => o.disconnect());
-  }, []);
+  }, [isHome]);
 
   return (
     <>
@@ -49,44 +85,38 @@ export function Navbar() {
       >
         <div className="w-full max-w-[1200px] mx-auto px-6 flex items-center justify-between">
           {/* Logo */}
-          <a
-            href="#"
+          <Link
+            href="/"
             className="font-display font-bold text-xl bg-gradient-to-r from-accent-blue to-accent-purple bg-clip-text text-transparent"
           >
             Prakhar Kothari
-          </a>
+          </Link>
 
           {/* Desktop links */}
           <div className="hidden md:flex items-center gap-8">
-            {NAV_LINKS.map(({ label, href }) => (
-              <a
-                key={href}
-                href={href}
-                className={cn(
-                  "relative text-sm font-body font-medium transition-colors duration-200",
-                  activeSection === href
-                    ? "text-text-primary"
-                    : "text-text-secondary hover:text-text-primary"
-                )}
-              >
-                {label}
-                <span
-                  className={cn(
-                    "absolute -bottom-1 left-0 h-[2px] bg-accent-blue transition-all duration-300",
-                    activeSection === href ? "w-full" : "w-0"
-                  )}
-                />
-              </a>
-            ))}
+            {NAV_LINKS.map(({ label, href }) => {
+              const resolvedHref = href.startsWith("#") && !isHome ? `/${href}` : href;
+              const isActive = href.startsWith("#") ? activeSection === href : pathname.startsWith(href);
+              return (
+                <NavLink key={href} href={resolvedHref} label={label} isActive={isActive} />
+              );
+            })}
           </div>
 
           {/* CTA */}
-          <a
-            href="#contact"
-            className="hidden md:inline-flex items-center px-5 py-2 text-sm font-medium rounded-full border border-accent-blue/30 text-accent-blue hover:bg-accent-blue/10 transition-all duration-300"
-          >
-            Let&apos;s Talk
-          </a>
+          <div className="hidden md:block">
+            <MagneticButton
+              as="a"
+              href={isHome ? "#contact" : "/#contact"}
+              warpId="nav-cta"
+              warpStrength={18}
+              warpRadius={150}
+              magnetStrength={0.25}
+              className="inline-flex items-center px-5 py-2 text-sm font-medium rounded-full border border-accent-blue/30 text-accent-blue hover:bg-accent-blue/10 transition-all duration-300"
+            >
+              Let&apos;s Talk
+            </MagneticButton>
+          </div>
 
           {/* Mobile toggle */}
           <button
@@ -109,29 +139,38 @@ export function Navbar() {
             className="fixed inset-0 z-40 bg-bg-primary/95 backdrop-blur-xl flex items-center justify-center"
           >
             <nav className="flex flex-col items-center gap-8">
-              {NAV_LINKS.map(({ label, href }, i) => (
-                <motion.a
-                  key={href}
-                  href={href}
-                  onClick={() => setMobileOpen(false)}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  className="text-2xl font-display font-bold text-text-primary hover:text-accent-blue transition-colors"
-                >
-                  {label}
-                </motion.a>
-              ))}
-              <motion.a
-                href="#contact"
-                onClick={() => setMobileOpen(false)}
+              {NAV_LINKS.map(({ label, href }, i) => {
+                const resolvedHref = href.startsWith("#") && !isHome ? `/${href}` : href;
+                return (
+                  <motion.div
+                    key={href}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                  >
+                    <Link
+                      href={resolvedHref}
+                      onClick={() => setMobileOpen(false)}
+                      className="text-2xl font-display font-bold text-text-primary hover:text-accent-blue transition-colors"
+                    >
+                      {label}
+                    </Link>
+                  </motion.div>
+                );
+              })}
+              <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: NAV_LINKS.length * 0.1 }}
-                className="mt-4 px-8 py-3 rounded-full bg-gradient-to-r from-accent-blue to-accent-purple text-white font-medium"
               >
-                Let&apos;s Talk
-              </motion.a>
+                <Link
+                  href={isHome ? "#contact" : "/#contact"}
+                  onClick={() => setMobileOpen(false)}
+                  className="mt-4 px-8 py-3 rounded-full bg-gradient-to-r from-accent-blue to-accent-purple text-white font-medium"
+                >
+                  Let&apos;s Talk
+                </Link>
+              </motion.div>
             </nav>
           </motion.div>
         )}
