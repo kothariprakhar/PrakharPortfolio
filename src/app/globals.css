@@ -28,27 +28,27 @@
   --divider-color: rgba(255, 255, 255, 0.06);
 }
 
-/* ── Light (manuscript) theme variable overrides ── */
+/* ── Light (vintage manuscript) theme variable overrides ── */
 html.light {
-  --color-bg-primary: #F5ECD7;
-  --color-bg-secondary: #EDE3CC;
-  --color-bg-tertiary: #E2D5B8;
-  --color-text-primary: #2C2418;
-  --color-text-secondary: #5C4E3C;
-  --color-text-muted: #9A8B78;
-  --color-accent-blue: #8B5A2B;
-  --color-accent-purple: #C5922E;
-  --color-accent-magenta: #A0522D;
-  --color-node-gold: #B8860B;
-  --color-glow-blue: rgba(139, 90, 43, 0.12);
-  --color-glow-purple: rgba(197, 146, 46, 0.12);
-  --color-border-subtle: rgba(139, 90, 43, 0.10);
+  --color-bg-primary: #F4EDDA;
+  --color-bg-secondary: #EBE2CC;
+  --color-bg-tertiary: #DFD5BC;
+  --color-text-primary: #1A1A2E;
+  --color-text-secondary: #3D3D5C;
+  --color-text-muted: #7A7A96;
+  --color-accent-blue: #1B3F6B;
+  --color-accent-purple: #2E5090;
+  --color-accent-magenta: #6B3A5D;
+  --color-node-gold: #8B6914;
+  --color-glow-blue: rgba(27, 63, 107, 0.10);
+  --color-glow-purple: rgba(46, 80, 144, 0.08);
+  --color-border-subtle: rgba(27, 63, 107, 0.08);
   --font-display: "Cormorant Garamond", "Space Grotesk", serif;
 
-  --gradient-from: #8B5A2B;
-  --gradient-to: #C5922E;
-  --glow-accent: rgba(139, 90, 43, 0.2);
-  --divider-color: rgba(139, 90, 43, 0.10);
+  --gradient-from: #1B3F6B;
+  --gradient-to: #2E5090;
+  --glow-accent: rgba(27, 63, 107, 0.18);
+  --divider-color: rgba(27, 63, 107, 0.10);
 }
 
 /* ── Smooth theme transition ── */
@@ -76,8 +76,8 @@ html.dark ::selection,
   color: #fff;
 }
 html.light ::selection {
-  background: rgba(139, 90, 43, 0.2);
-  color: #2C2418;
+  background: rgba(27, 63, 107, 0.2);
+  color: #1A1A2E;
 }
 
 /* ── Scrollbar ── */
@@ -129,20 +129,24 @@ body::after {
    LIGHT THEME — Manuscript overlays
    ══════════════════════════════════════ */
 
-/* Aged brown edges — corners + vignette */
+/* Aged brown edges — heavy vintage burn at corners + vignette */
 html.light body::before {
   background:
-    radial-gradient(ellipse at 0% 0%, rgba(170, 130, 80, 0.28) 0%, transparent 50%),
-    radial-gradient(ellipse at 100% 0%, rgba(170, 130, 80, 0.22) 0%, transparent 45%),
-    radial-gradient(ellipse at 0% 100%, rgba(170, 130, 80, 0.22) 0%, transparent 45%),
-    radial-gradient(ellipse at 100% 100%, rgba(170, 130, 80, 0.28) 0%, transparent 50%),
-    radial-gradient(ellipse at center, transparent 55%, rgba(150, 110, 60, 0.10) 100%);
+    radial-gradient(ellipse at 0% 0%, rgba(140, 95, 40, 0.45) 0%, rgba(160, 110, 50, 0.18) 30%, transparent 55%),
+    radial-gradient(ellipse at 100% 0%, rgba(140, 95, 40, 0.38) 0%, rgba(160, 110, 50, 0.14) 28%, transparent 50%),
+    radial-gradient(ellipse at 0% 100%, rgba(140, 95, 40, 0.38) 0%, rgba(160, 110, 50, 0.14) 28%, transparent 50%),
+    radial-gradient(ellipse at 100% 100%, rgba(140, 95, 40, 0.45) 0%, rgba(160, 110, 50, 0.18) 30%, transparent 55%),
+    radial-gradient(ellipse at 50% 0%, rgba(150, 105, 45, 0.15) 0%, transparent 40%),
+    radial-gradient(ellipse at 50% 100%, rgba(150, 105, 45, 0.15) 0%, transparent 40%),
+    radial-gradient(ellipse at 0% 50%, rgba(150, 105, 45, 0.10) 0%, transparent 35%),
+    radial-gradient(ellipse at 100% 50%, rgba(150, 105, 45, 0.10) 0%, transparent 35%),
+    radial-gradient(ellipse at center, transparent 40%, rgba(150, 110, 55, 0.12) 100%);
 }
 
-/* Paper texture */
+/* Paper texture — visible fibrous grain */
 html.light body::after {
-  opacity: 0.06;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.04' numOctaves='5' stitchTiles='stitch'/%3E%3CfeDiffuseLighting in='turbulence' lighting-color='%23fff' surfaceScale='2'%3E%3CfeDistantLight azimuth='45' elevation='55'/%3E%3C/feDiffuseLighting%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E");
+  opacity: 0.10;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.035' numOctaves='6' stitchTiles='stitch'/%3E%3CfeDiffuseLighting in='turbulence' lighting-color='%23fff' surfaceScale='3'%3E%3CfeDistantLight azimuth='45' elevation='50'/%3E%3C/feDiffuseLighting%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E");
   background-size: 512px 512px;
   mix-blend-mode: multiply;
 }
@@ -170,21 +174,21 @@ html.light body::after {
     0 0 20px rgba(0, 212, 255, 0.06);
 }
 
-/* Light mode: parchment paper cards */
+/* Light mode: vintage paper cards */
 html.light .glass-card {
-  background: rgba(245, 236, 215, 0.75);
+  background: rgba(244, 237, 218, 0.80);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-  border: 1px solid rgba(139, 90, 43, 0.10);
+  border: 1px solid rgba(27, 63, 107, 0.08);
   box-shadow:
     inset 0 1px 0 0 rgba(255, 255, 255, 0.5),
-    0 2px 12px rgba(139, 90, 43, 0.08);
+    0 2px 12px rgba(0, 0, 0, 0.06);
 }
 html.light .glass-card:hover {
-  border-color: rgba(139, 90, 43, 0.20);
+  border-color: rgba(27, 63, 107, 0.18);
   box-shadow:
     inset 0 1px 0 0 rgba(255, 255, 255, 0.5),
-    0 8px 30px rgba(139, 90, 43, 0.12);
+    0 8px 30px rgba(27, 63, 107, 0.10);
 }
 
 /* Parchment corner fold on cards */
@@ -197,16 +201,11 @@ html.light .glass-card::after {
   position: absolute;
   bottom: 0;
   right: 0;
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   background:
-    linear-gradient(135deg, transparent 40%, rgba(180, 140, 90, 0.08) 40%, rgba(180, 140, 90, 0.14) 50%, rgba(160, 120, 70, 0.18) 100%);
+    linear-gradient(135deg, transparent 45%, rgba(180, 150, 100, 0.10) 45%, rgba(160, 130, 80, 0.16) 100%);
   pointer-events: none;
-}
-
-/* Subtle top-edge tear on page — manuscript authenticity */
-html.light body::before {
-  border-top: 1px solid rgba(170, 130, 80, 0.08);
 }
 
 /* ── Custom cursor: hide native cursor on fine pointer devices ── */

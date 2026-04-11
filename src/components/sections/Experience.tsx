@@ -159,13 +159,13 @@ function GradientDescentOverlay() {
   }, []);
 
   // Theme-aware colors
-  const contourPrimary = isLight ? "rgba(139, 90, 43, 0.06)" : "rgba(0, 212, 255, 0.04)";
-  const contourSecondary = isLight ? "rgba(197, 146, 46, 0.04)" : "rgba(123, 47, 255, 0.03)";
-  const glowColor = isLight ? "rgba(139, 90, 43, 0.10)" : "rgba(0, 212, 255, 0.12)";
-  const glowEnd = isLight ? "rgba(139, 90, 43, 0)" : "rgba(0, 212, 255, 0)";
-  const descentTop = isLight ? "rgba(160, 82, 45, 0.35)" : "rgba(255, 100, 80, 0.4)";
-  const descentMid = isLight ? "rgba(197, 146, 46, 0.3)" : "rgba(123, 47, 255, 0.35)";
-  const descentBottom = isLight ? "rgba(139, 90, 43, 0.45)" : "rgba(0, 212, 255, 0.5)";
+  const contourPrimary = isLight ? "rgba(27, 63, 107, 0.06)" : "rgba(0, 212, 255, 0.04)";
+  const contourSecondary = isLight ? "rgba(46, 80, 144, 0.04)" : "rgba(123, 47, 255, 0.03)";
+  const glowColor = isLight ? "rgba(27, 63, 107, 0.10)" : "rgba(0, 212, 255, 0.12)";
+  const glowEnd = isLight ? "rgba(27, 63, 107, 0)" : "rgba(0, 212, 255, 0)";
+  const descentTop = isLight ? "rgba(107, 58, 93, 0.30)" : "rgba(255, 100, 80, 0.4)";
+  const descentMid = isLight ? "rgba(46, 80, 144, 0.25)" : "rgba(123, 47, 255, 0.35)";
+  const descentBottom = isLight ? "rgba(27, 63, 107, 0.40)" : "rgba(0, 212, 255, 0.5)";
 
   // The descent path curves gently as it goes down
   const descentPath = "M 50 20 C 60 120, 38 220, 55 320 C 68 420, 42 520, 50 620 C 56 720, 44 820, 50 920";

@@ -38,10 +38,10 @@ const categoryPulseColorDark: Record<string, string> = {
 };
 
 const categoryPulseColorLight: Record<string, string> = {
-  "Product Management": "rgba(197, 146, 46, 0.30)",
-  "AI / ML": "rgba(139, 90, 43, 0.30)",
-  Engineering: "rgba(160, 82, 45, 0.30)",
-  "Tools & Platforms": "rgba(184, 134, 11, 0.30)",
+  "Product Management": "rgba(46, 80, 144, 0.25)",
+  "AI / ML": "rgba(27, 63, 107, 0.25)",
+  Engineering: "rgba(107, 58, 93, 0.25)",
+  "Tools & Platforms": "rgba(139, 105, 20, 0.25)",
 };
 
 const categories = Object.keys(SKILLS) as SkillCategory[];
