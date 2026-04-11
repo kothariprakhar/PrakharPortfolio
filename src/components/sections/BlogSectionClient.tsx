@@ -41,13 +41,13 @@ export function BlogSectionClient({ posts }: { posts: BlogPostMeta[] }) {
               transition={{ delay: i * 0.1, duration: 0.5 }}
             >
               <Link href={`/blog/${post.slug}`} className="group block">
-                <div className="bg-bg-secondary/60 backdrop-blur-sm border border-border-subtle rounded-2xl overflow-hidden hover:border-accent-blue/20 transition-all duration-300">
+                <div className="glass-card overflow-hidden transition-all duration-300">
                   <div className="relative h-40 bg-gradient-to-br from-accent-blue/10 via-accent-purple/10 to-accent-magenta/10 overflow-hidden">
                     <div
                       className="absolute inset-0 opacity-50"
                       style={{
                         background:
-                          "linear-gradient(135deg, rgba(0,212,255,0.15), rgba(123,47,255,0.15), rgba(255,45,170,0.1))",
+                          "linear-gradient(135deg, var(--color-glow-blue), var(--color-glow-purple), var(--color-glow-blue))",
                         animation: "gradientShift 8s ease-in-out infinite",
                         backgroundSize: "200% 200%",
                       }}

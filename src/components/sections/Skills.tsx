@@ -13,6 +13,7 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { SKILLS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { useSpacetimeWarp } from "@/components/background/useSpacetimeWarp";
+import { useTheme } from "@/context/ThemeContext";
 import type { SkillCategory } from "@/types";
 
 const iconMap: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
@@ -29,11 +30,18 @@ const categoryColors: Record<string, string> = {
   "Tools & Platforms": "text-node-gold border-node-gold/20 bg-node-gold/10",
 };
 
-const categoryPulseColor: Record<string, string> = {
+const categoryPulseColorDark: Record<string, string> = {
   "Product Management": "rgba(123, 47, 255, 0.35)",
   "AI / ML": "rgba(0, 212, 255, 0.35)",
   Engineering: "rgba(255, 45, 170, 0.35)",
   "Tools & Platforms": "rgba(255, 184, 71, 0.35)",
+};
+
+const categoryPulseColorLight: Record<string, string> = {
+  "Product Management": "rgba(197, 146, 46, 0.30)",
+  "AI / ML": "rgba(139, 90, 43, 0.30)",
+  Engineering: "rgba(160, 82, 45, 0.30)",
+  "Tools & Platforms": "rgba(184, 134, 11, 0.30)",
 };
 
 const categories = Object.keys(SKILLS) as SkillCategory[];
@@ -117,6 +125,8 @@ export function Skills() {
   const [firedIndex, setFiredIndex] = useState(-1);
   const [propagated, setPropagated] = useState<Set<number>>(new Set());
   const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const { resolvedTheme } = useTheme();
+  const categoryPulseColor = resolvedTheme === "light" ? categoryPulseColorLight : categoryPulseColorDark;
 
   const fireNeuron = useCallback(
     (index: number) => {

@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ArrowUpRight, X } from "lucide-react";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { ArrowUpRight } from "lucide-react";
 import { SectionWrapper } from "@/components/layout/SectionWrapper";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { PROJECTS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { useSpacetimeWarp } from "@/components/background/useSpacetimeWarp";
+import { useTilt } from "@/hooks/useTilt";
 
 const typeColors: Record<string, string> = {
   AI: "bg-accent-blue/10 text-accent-blue border-accent-blue/20",
@@ -36,30 +37,37 @@ function ProjectCard({
   project: (typeof PROJECTS)[number];
   index: number;
 }) {
-  const [expanded, setExpanded] = useState(false);
   const { ref, onMouseEnter, onMouseLeave } = useSpacetimeWarp(`project-${project.id}`, {
     strength: 30,
     radius: 250,
   });
+  const { ref: tiltRef, tiltStyle, onMouseMove: tiltMove, onMouseLeave: tiltLeave } = useTilt(6);
 
   const isLarge = index === 0;
   const imageHeight = isLarge ? "h-48 md:h-64" : "h-36 md:h-44";
 
+  // Combine refs
+  const setRefs = (el: HTMLDivElement | null) => {
+    (ref as React.MutableRefObject<HTMLElement | null>).current = el;
+    (tiltRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
+  };
+
   return (
-    <>
+    <Link href={`/projects/${project.id}`} className="contents">
       <motion.div
-        ref={ref as React.Ref<HTMLDivElement>}
+        ref={setRefs}
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.2 }}
         transition={{ delay: index * 0.1, duration: 0.5 }}
+        style={tiltStyle}
         onMouseEnter={onMouseEnter}
-        onMouseLeave={onMouseLeave}
+        onMouseLeave={() => { onMouseLeave(); tiltLeave(); }}
+        onMouseMove={tiltMove}
         className={cn(
-          "group bg-bg-secondary/60 backdrop-blur-sm border border-border-subtle rounded-2xl overflow-hidden hover:border-accent-blue/20 hover:-translate-y-1 transition-all duration-300 cursor-pointer",
+          "group glass-card overflow-hidden hover:-translate-y-1 transition-all duration-300 cursor-pointer",
           bentoSpans[index] || "md:col-span-1"
         )}
-        onClick={() => setExpanded(true)}
       >
         {/* Image placeholder */}
         <div
@@ -126,89 +134,7 @@ function ProjectCard({
           </div>
         </div>
       </motion.div>
-
-      {/* Expanded detail overlay */}
-      <AnimatePresence>
-        {expanded && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-bg-primary/90 backdrop-blur-xl flex items-center justify-center p-4 md:p-8"
-            onClick={() => setExpanded(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="bg-bg-secondary border border-border-subtle rounded-2xl p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-start justify-between mb-6">
-                <div>
-                  <span
-                    className={cn(
-                      "px-3 py-1 text-[11px] font-mono tracking-wider rounded-full border",
-                      typeColors[project.type]
-                    )}
-                  >
-                    {project.type}
-                  </span>
-                  <h3 className="font-display font-bold text-2xl text-text-primary mt-3">
-                    {project.title}
-                  </h3>
-                  <p className="text-text-muted text-sm mt-1">{project.subtitle}</p>
-                </div>
-                <button
-                  onClick={() => setExpanded(false)}
-                  className="text-text-muted hover:text-text-primary transition-colors p-1"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-
-              <div className="space-y-6">
-                <div>
-                  <h4 className="font-mono text-xs tracking-wider text-accent-blue uppercase mb-2">
-                    The Problem
-                  </h4>
-                  <p className="text-text-secondary text-sm leading-relaxed">{project.problem}</p>
-                </div>
-                <div>
-                  <h4 className="font-mono text-xs tracking-wider text-accent-purple uppercase mb-2">
-                    My Approach
-                  </h4>
-                  <p className="text-text-secondary text-sm leading-relaxed">{project.approach}</p>
-                </div>
-                <div>
-                  <h4 className="font-mono text-xs tracking-wider text-accent-magenta uppercase mb-2">
-                    Outcome
-                  </h4>
-                  <p className="text-text-secondary text-sm leading-relaxed">{project.outcome}</p>
-                </div>
-              </div>
-
-              <div className="mt-6 pt-6 border-t border-border-subtle">
-                <h4 className="font-mono text-xs tracking-wider text-text-muted uppercase mb-3">
-                  Technologies
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {project.technologies.map((tech) => (
-                    <span
-                      key={tech}
-                      className="px-3 py-1 text-[11px] font-mono tracking-wider rounded-full bg-accent-blue/10 text-accent-blue border border-accent-blue/20"
-                    >
-                      {tech}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+    </Link>
   );
 }
 

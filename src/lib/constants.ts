@@ -162,6 +162,56 @@ export const PROJECTS = [
     outcome: "32% reduction in cycle time, $80M+ in projected efficiency gains.",
     technologies: ["AI/ML", "Computer Vision", "3D CAD", "Product Strategy"],
     featured: true,
+    caseStudy: {
+      heroMetrics: [
+        { value: "32%", label: "Cycle Time Reduction" },
+        { value: "$80M+", label: "Projected Savings" },
+        { value: "$3B", label: "Marketplace Volume" },
+      ],
+      sections: [
+        {
+          heading: "Context",
+          content: "A leading manufacturing marketplace processing $3B+ in annual transactions relied on manual procurement workflows. Buyers uploaded 3D CAD files and specifications, then human operators manually matched them with vendors — a process taking days per RFQ and costing the platform millions in operational overhead.",
+        },
+        {
+          heading: "The Problem",
+          content: "The manual buyer-vendor matching process was the single largest bottleneck in the procurement pipeline. With thousands of RFQs per month and a growing vendor network, the platform couldn't scale without fundamentally rethinking how parts were analyzed and matched. Key pain points included: inconsistent matching quality across operators, 3-5 day average cycle time per RFQ, and inability to leverage the rich geometric data embedded in CAD files.",
+        },
+        {
+          heading: "Discovery & Research",
+          content: "I led 30+ stakeholder interviews across procurement teams, engineering managers, and vendor partners to map the end-to-end workflow. The critical insight was that 80% of matching decisions could be predicted from CAD geometry + historical transaction data alone. I conducted a competitive analysis of existing solutions and identified that no platform was using 3D geometry understanding at the feature extraction level — everyone was relying on text metadata.",
+          bullets: [
+            "30+ stakeholder interviews across buyers, vendors, and internal ops",
+            "Mapped 47 decision variables in the manual matching workflow",
+            "Identified 3D geometry as the untapped data source for automated matching",
+            "Evaluated 5 technical approaches with the ML engineering team",
+          ],
+        },
+        {
+          heading: "Solution",
+          content: "I built the business case and product strategy for a multimodal AI engine that combines B-Rep Transformer-based 3D CAD parsing with historical transaction data to automate buyer-vendor matching. The system extracts manufacturing features (tolerances, materials, complexity) directly from CAD geometry, then matches against vendor capabilities using a learned similarity model. I authored the PRD, defined success metrics, and managed the phased rollout starting with the highest-volume part categories.",
+        },
+        {
+          heading: "Results & Impact",
+          content: "The AI engine reduced procurement cycle time by 32% in the pilot cohort and projected $80M+ in efficiency gains at full scale. Matching accuracy exceeded human operators by 15% on standardized part categories. The system now processes the majority of incoming RFQs with minimal human review, freeing the operations team to focus on complex, non-standard requests.",
+          metrics: [
+            { value: "32%", label: "Reduction in procurement cycle time" },
+            { value: "$80M+", label: "Projected annual efficiency gains" },
+            { value: "15%", label: "Improvement in matching accuracy vs. manual" },
+            { value: "3→1 day", label: "Average RFQ turnaround" },
+          ],
+        },
+        {
+          heading: "Key Learnings",
+          content: "The biggest lesson was that domain expertise matters more than model architecture. The breakthrough came from understanding how procurement engineers think about parts — not from a better transformer. Spending weeks on stakeholder interviews before writing a single spec saved months of engineering rework.",
+          bullets: [
+            "Domain depth > model sophistication for enterprise AI products",
+            "Phased rollout by part category reduced risk and built internal confidence",
+            "Defining clear fallback to human review was critical for stakeholder buy-in",
+          ],
+        },
+      ],
+    },
   },
   {
     id: "hr-virtual-assistant",
@@ -175,6 +225,56 @@ export const PROJECTS = [
     outcome: "$3M new annual revenue, 1.5M new users, adopted across North America, Europe, and Asia.",
     technologies: ["NLP", "Python", "React", "AWS", "Enterprise SaaS"],
     featured: true,
+    caseStudy: {
+      heroMetrics: [
+        { value: "1.5M", label: "Users Served" },
+        { value: "$3M", label: "New Annual Revenue" },
+        { value: "25+", label: "Features Shipped" },
+      ],
+      sections: [
+        {
+          heading: "Context",
+          content: "Leena AI's flagship product was an AI-powered HR virtual assistant deployed across 90+ enterprise clients globally. The v1.0 product handled basic HR queries but had limited understanding of complex, multi-turn conversations and lacked the enterprise-grade features needed by Fortune 500 clients.",
+        },
+        {
+          heading: "The Problem",
+          content: "Enterprise HR departments were drowning in repetitive queries — leave policies, benefits enrollment, payroll questions — consuming 40-60% of HR team bandwidth. While v1.0 addressed basic FAQ-style queries, customers demanded more: multi-turn conversations, policy-aware responses tailored to their organization, and integrations with their HRIS systems. Churn risk was rising as competitors caught up on basic chatbot features.",
+        },
+        {
+          heading: "Discovery & Research",
+          content: "I partnered with 4 Fortune 500 clients to deeply understand their pain points. The key finding: it wasn't just about answering questions — it was about understanding context. An employee asking about 'leave' at 3 PM on a Friday has a different intent than one asking at 9 AM on a Monday. I mapped 200+ intent patterns across client organizations and identified the top 25 features that would cover 80% of unresolved queries.",
+          bullets: [
+            "Partnered with 4 Fortune 500 clients for deep discovery",
+            "Mapped 200+ intent patterns across organizations",
+            "Identified context-aware responses as the key differentiator",
+            "Prioritized 25 features using RICE scoring framework",
+          ],
+        },
+        {
+          heading: "Solution",
+          content: "I managed a 10-member cross-functional team (NLP engineers, frontend, backend, QA) to rebuild the conversational AI pipeline. Key architectural decisions included moving from rule-based to transformer-based intent classification, adding organization-specific policy embedding, and building a self-service admin portal for HR teams to customize responses without engineering support. I authored PRDs for each feature wave, ran weekly sprint planning, and personally demoed progress to C-suite stakeholders at client organizations.",
+        },
+        {
+          heading: "Results & Impact",
+          content: "The v2.0 launch drove $3M in new annual revenue and expanded the user base to 1.5M across North America, Europe, and Asia. Resolution rates improved from 60% to 85%, and the self-service admin portal reduced implementation time from 6 weeks to 2 weeks.",
+          metrics: [
+            { value: "$3M", label: "New annual recurring revenue" },
+            { value: "1.5M", label: "Active users globally" },
+            { value: "85%", label: "Query resolution rate (up from 60%)" },
+            { value: "6→2 wk", label: "Implementation time reduction" },
+          ],
+        },
+        {
+          heading: "Key Learnings",
+          content: "Building for enterprises taught me that the product is only 50% of the value — the other 50% is the implementation and ongoing customization experience. The self-service admin portal drove more expansion revenue than any individual chatbot feature.",
+          bullets: [
+            "Enterprise products need implementation excellence, not just features",
+            "Self-service customization tools > professional services at scale",
+            "Weekly stakeholder demos built trust and prevented scope creep",
+          ],
+        },
+      ],
+    },
   },
   {
     id: "employee-engagement",
@@ -188,6 +288,56 @@ export const PROJECTS = [
     outcome: "$5M ARR in 10 months, adopted by 90+ enterprises globally.",
     technologies: ["Product Strategy", "Analytics", "Enterprise SaaS"],
     featured: false,
+    caseStudy: {
+      heroMetrics: [
+        { value: "$5M", label: "ARR in 10 Months" },
+        { value: "90+", label: "Enterprise Clients" },
+        { value: "0→1", label: "Built from Scratch" },
+      ],
+      sections: [
+        {
+          heading: "Context",
+          content: "Leena AI had established product-market fit with its HR virtual assistant but needed a second growth vector. Employee engagement and pulse surveys represented a $2B+ market with incumbent players like Culture Amp and Glint, but none were integrated with an AI assistant that could act on survey insights in real-time.",
+        },
+        {
+          heading: "The Problem",
+          content: "Organizations invested heavily in annual engagement surveys but struggled to translate results into action. Survey fatigue was high (30-40% response rates), insights arrived months late, and there was no closed-loop system to address individual employee concerns. The market opportunity was clear: an engagement platform that combined real-time pulse surveys with AI-driven action recommendations.",
+        },
+        {
+          heading: "Discovery & Research",
+          content: "I led the 0→1 initiative: customer discovery interviews with 20+ CHROs, competitive teardowns of 6 incumbents, and collaboration with data science to prototype an NLP-based attrition prediction model. The unique differentiator: integrating survey insights directly into the virtual assistant, so employees could surface concerns conversationally, and HR teams could see aggregated sentiment in real-time.",
+          bullets: [
+            "20+ CHRO interviews across industries",
+            "Competitive teardown of Culture Amp, Glint, Peakon, Lattice, 15Five, Officevibe",
+            "Prototyped NLP-based attrition prediction with Fortune 500 partner",
+            "Defined 3-phase roadmap: Launch → Grow → Differentiate",
+          ],
+        },
+        {
+          heading: "Solution",
+          content: "I defined the product vision, authored the roadmap, and managed execution across engineering, design, and go-to-market teams. The platform featured customizable pulse surveys, real-time sentiment dashboards, manager action plans, and integration with the existing virtual assistant for conversational check-ins. I personally led the sales engineering process for the first 10 enterprise deals.",
+        },
+        {
+          heading: "Results & Impact",
+          content: "The platform reached $5M ARR within 10 months of launch, adopted by 90+ enterprises. Response rates averaged 72% — nearly double the industry benchmark — driven by the conversational survey format via the virtual assistant.",
+          metrics: [
+            { value: "$5M", label: "ARR achieved in 10 months" },
+            { value: "90+", label: "Enterprise clients onboarded" },
+            { value: "72%", label: "Survey response rate (vs. 35% industry avg)" },
+            { value: "$15M", label: "Projected savings from attrition prediction" },
+          ],
+        },
+        {
+          heading: "Key Learnings",
+          content: "The fastest path to PMF for a second product is leveraging distribution from the first. Our existing virtual assistant install base gave us warm leads and a unique integration story that pure-play engagement tools couldn't match.",
+          bullets: [
+            "Second products win when they leverage first-product distribution",
+            "Conversational survey format was the key differentiator, not analytics depth",
+            "Sales engineering involvement in first 10 deals built critical feedback loop",
+          ],
+        },
+      ],
+    },
   },
   {
     id: "play-based-learning",
@@ -201,8 +351,58 @@ export const PROJECTS = [
     outcome: "45% DAU/MAU ratio, 35% improvement in math proficiency across 700 students.",
     technologies: ["React", "Node.js", "EdTech", "User Research"],
     featured: false,
+    caseStudy: {
+      heroMetrics: [
+        { value: "45%", label: "DAU/MAU Ratio" },
+        { value: "35%", label: "Math Proficiency Gain" },
+        { value: "700", label: "Students Reached" },
+      ],
+      sections: [
+        {
+          heading: "Context",
+          content: "Club Khel was born at Imperial College London's entrepreneurship program from a simple observation: primary school students in underserved communities learn better through play than through lectures. We set out to build a platform that integrates physical activity with academic learning, starting with mathematics.",
+        },
+        {
+          heading: "The Problem",
+          content: "In the UK and India, primary school students — especially in underserved communities — were disengaged from traditional STEM instruction. Dropout rates in math were rising, and teachers lacked tools to make learning experiential. Existing EdTech solutions focused on screen-based gamification, which didn't address the physical engagement gap.",
+        },
+        {
+          heading: "Discovery & Research",
+          content: "As Head of Product, I led 100+ interviews with teachers, parents, students, and education researchers across 15 schools. The key insight: children who participated in structured play-based activities showed 2-3x better knowledge retention versus passive learning. The challenge was designing a platform that teachers could adopt without additional training.",
+          bullets: [
+            "100+ user interviews across teachers, parents, and students",
+            "Observed 30+ classroom sessions to understand engagement patterns",
+            "Partnered with education researchers at Imperial College",
+            "Identified teacher adoption (not student engagement) as the critical risk",
+          ],
+        },
+        {
+          heading: "Solution",
+          content: "I led product strategy and development: a web platform with play-based lesson plans mapped to the national curriculum, peer learning networks where students collaborate on challenges, and personalized progress tracking for teachers. The technical stack was React + Node.js with real-time collaboration features. I designed the UX to require zero training — teachers could run a session within 5 minutes of first login.",
+        },
+        {
+          heading: "Results & Impact",
+          content: "We piloted across 10+ primary schools, reaching 700 students. The platform achieved a 45% DAU/MAU ratio — exceptional for EdTech — and students showed a 35% improvement in math proficiency scores over one academic term. Teachers reported saving 3+ hours per week on lesson planning.",
+          metrics: [
+            { value: "45%", label: "DAU/MAU ratio (vs. 15% EdTech avg)" },
+            { value: "35%", label: "Improvement in math proficiency" },
+            { value: "700", label: "Students across 10+ schools" },
+            { value: "3+ hrs", label: "Weekly teacher time saved" },
+          ],
+        },
+        {
+          heading: "Key Learnings",
+          content: "Building for education taught me the importance of designing for the buyer (teacher/admin), not just the user (student). The simplest product wins when your users are time-constrained professionals. Every feature that added setup complexity was a barrier to adoption.",
+          bullets: [
+            "Design for the buyer (teacher), not just the end user (student)",
+            "Zero-training-required UX was the single biggest adoption driver",
+            "Physical + digital hybrid experiences create deeper engagement than either alone",
+          ],
+        },
+      ],
+    },
   },
-] as const;
+];
 
 export const SKILLS = {
   "Product Management": [

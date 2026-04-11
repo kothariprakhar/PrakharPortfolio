@@ -117,7 +117,7 @@ export function Contact() {
           </p>
           <a
             href={`mailto:${SOCIAL_LINKS.email}`}
-            className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-gradient-to-r from-accent-blue to-accent-purple text-white font-medium hover:shadow-[0_0_40px_rgba(0,212,255,0.3)] transition-shadow duration-300"
+            className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-gradient-to-r from-accent-blue to-accent-purple text-white font-medium hover:shadow-[0_0_40px_var(--glow-accent)] transition-shadow duration-300"
           >
             <Mail size={18} />
             Send me an email

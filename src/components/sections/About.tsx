@@ -114,7 +114,7 @@ function JourneyCard({
       viewport={{ once: true, amount: 0.3 }}
       transition={{ delay: index * 0.15, duration: 0.5 }}
       className="relative pl-6 border-l-2 border-gradient-to-b from-accent-blue to-accent-purple bg-bg-secondary/50 backdrop-blur-sm rounded-r-2xl p-6 hover:bg-bg-tertiary/50 transition-colors duration-300"
-      style={{ borderImage: "linear-gradient(to bottom, #00D4FF, #7B2FFF) 1" }}
+      style={{ borderImage: "linear-gradient(to bottom, var(--gradient-from), var(--gradient-to)) 1" }}
     >
       <div className="flex items-start gap-4">
         <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-accent-blue/10 flex items-center justify-center">

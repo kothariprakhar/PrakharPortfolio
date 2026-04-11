@@ -134,7 +134,7 @@ export function Hero() {
             warpId="hero-cta-primary"
             warpStrength={25}
             warpRadius={180}
-            className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full bg-gradient-to-r from-accent-blue to-accent-purple text-white font-medium text-sm hover:shadow-[0_0_30px_rgba(0,212,255,0.3)] transition-shadow duration-300"
+            className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full bg-gradient-to-r from-accent-blue to-accent-purple text-white font-medium text-sm hover:shadow-[0_0_30px_var(--glow-accent)] transition-shadow duration-300"
           >
             View My Work
             <span className="ml-1">&rarr;</span>

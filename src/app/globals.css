@@ -20,6 +20,45 @@
   --font-mono: "JetBrains Mono", monospace;
 }
 
+/* ── Theme-agnostic CSS custom properties ── */
+:root {
+  --gradient-from: #00D4FF;
+  --gradient-to: #7B2FFF;
+  --glow-accent: rgba(0, 212, 255, 0.3);
+  --divider-color: rgba(255, 255, 255, 0.06);
+}
+
+/* ── Light (manuscript) theme variable overrides ── */
+html.light {
+  --color-bg-primary: #F5ECD7;
+  --color-bg-secondary: #EDE3CC;
+  --color-bg-tertiary: #E2D5B8;
+  --color-text-primary: #2C2418;
+  --color-text-secondary: #5C4E3C;
+  --color-text-muted: #9A8B78;
+  --color-accent-blue: #8B5A2B;
+  --color-accent-purple: #C5922E;
+  --color-accent-magenta: #A0522D;
+  --color-node-gold: #B8860B;
+  --color-glow-blue: rgba(139, 90, 43, 0.12);
+  --color-glow-purple: rgba(197, 146, 46, 0.12);
+  --color-border-subtle: rgba(139, 90, 43, 0.10);
+  --font-display: "Cormorant Garamond", "Space Grotesk", serif;
+
+  --gradient-from: #8B5A2B;
+  --gradient-to: #C5922E;
+  --glow-accent: rgba(139, 90, 43, 0.2);
+  --divider-color: rgba(139, 90, 43, 0.10);
+}
+
+/* ── Smooth theme transition ── */
+html.theme-transition,
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+  transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease !important;
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -30,25 +69,158 @@ body {
   font-family: var(--font-body);
 }
 
+/* ── Selection ── */
+html.dark ::selection,
 ::selection {
   background: rgba(0, 212, 255, 0.3);
   color: #fff;
 }
+html.light ::selection {
+  background: rgba(139, 90, 43, 0.2);
+  color: #2C2418;
+}
 
-/* Scrollbar styling */
+/* ── Scrollbar ── */
 ::-webkit-scrollbar {
   width: 6px;
 }
-
 ::-webkit-scrollbar-track {
   background: var(--color-bg-primary);
 }
-
 ::-webkit-scrollbar-thumb {
   background: var(--color-bg-tertiary);
   border-radius: 3px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-accent-blue);
+}
+
+/* ══════════════════════════════════════
+   DARK THEME — Spacetime overlays
+   ══════════════════════════════════════ */
+
+/* Vignette */
+html.dark body::before,
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(10, 10, 15, 0.4) 100%);
+}
+
+/* Noise grain */
+html.dark body::after,
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+  mix-blend-mode: overlay;
+}
+
+/* ══════════════════════════════════════
+   LIGHT THEME — Manuscript overlays
+   ══════════════════════════════════════ */
+
+/* Aged brown edges — corners + vignette */
+html.light body::before {
+  background:
+    radial-gradient(ellipse at 0% 0%, rgba(170, 130, 80, 0.28) 0%, transparent 50%),
+    radial-gradient(ellipse at 100% 0%, rgba(170, 130, 80, 0.22) 0%, transparent 45%),
+    radial-gradient(ellipse at 0% 100%, rgba(170, 130, 80, 0.22) 0%, transparent 45%),
+    radial-gradient(ellipse at 100% 100%, rgba(170, 130, 80, 0.28) 0%, transparent 50%),
+    radial-gradient(ellipse at center, transparent 55%, rgba(150, 110, 60, 0.10) 100%);
+}
+
+/* Paper texture */
+html.light body::after {
+  opacity: 0.06;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.04' numOctaves='5' stitchTiles='stitch'/%3E%3CfeDiffuseLighting in='turbulence' lighting-color='%23fff' surfaceScale='2'%3E%3CfeDistantLight azimuth='45' elevation='55'/%3E%3C/feDiffuseLighting%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E");
+  background-size: 512px 512px;
+  mix-blend-mode: multiply;
+}
+
+/* ══════════════════════════════════════
+   Cards — Dark (glassmorphism) / Light (parchment)
+   ══════════════════════════════════════ */
+
+.glass-card {
+  background: rgba(18, 18, 26, 0.4);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.04),
+    0 4px 24px rgba(0, 0, 0, 0.2);
+  border-radius: 1rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.glass-card:hover {
+  border-color: rgba(0, 212, 255, 0.15);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.06),
+    0 12px 40px rgba(0, 0, 0, 0.35),
+    0 0 20px rgba(0, 212, 255, 0.06);
+}
+
+/* Light mode: parchment paper cards */
+html.light .glass-card {
+  background: rgba(245, 236, 215, 0.75);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid rgba(139, 90, 43, 0.10);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.5),
+    0 2px 12px rgba(139, 90, 43, 0.08);
+}
+html.light .glass-card:hover {
+  border-color: rgba(139, 90, 43, 0.20);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.5),
+    0 8px 30px rgba(139, 90, 43, 0.12);
+}
+
+/* Parchment corner fold on cards */
+html.light .glass-card {
+  position: relative;
+  overflow: hidden;
+}
+html.light .glass-card::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 24px;
+  height: 24px;
+  background:
+    linear-gradient(135deg, transparent 40%, rgba(180, 140, 90, 0.08) 40%, rgba(180, 140, 90, 0.14) 50%, rgba(160, 120, 70, 0.18) 100%);
+  pointer-events: none;
+}
+
+/* Subtle top-edge tear on page — manuscript authenticity */
+html.light body::before {
+  border-top: 1px solid rgba(170, 130, 80, 0.08);
+}
+
+/* ── Custom cursor: hide native cursor on fine pointer devices ── */
+@media (pointer: fine) {
+  * { cursor: none !important; }
+  input, textarea, select { cursor: text !important; }
+}
+
+/* ── Reduced motion: respect OS preference ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

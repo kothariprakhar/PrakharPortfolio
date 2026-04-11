@@ -8,6 +8,7 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { EXPERIENCE } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { useSpacetimeWarp } from "@/components/background/useSpacetimeWarp";
+import { useTheme } from "@/context/ThemeContext";
 
 const LOSS_VALUES = ["L = 0.89", "L = 0.62", "L = 0.34", "L = 0.15", "L = 0.03"];
 
@@ -49,7 +50,7 @@ function TimelineItem({
           isLeft ? "-right-[38px] flex-row" : "-left-[38px] flex-row-reverse"
         )}
       >
-        <div className="w-3 h-3 rounded-full bg-gradient-to-r from-accent-blue to-accent-purple shadow-[0_0_12px_rgba(0,212,255,0.5)]" />
+        <div className="w-3 h-3 rounded-full bg-gradient-to-r from-accent-blue to-accent-purple shadow-[0_0_12px_var(--glow-accent)]" />
       </div>
 
       {/* Loss label — desktop */}
@@ -68,11 +69,11 @@ function TimelineItem({
       </div>
 
       {/* Mobile node */}
-      <div className="md:hidden absolute left-0 top-8 w-3 h-3 rounded-full bg-gradient-to-r from-accent-blue to-accent-purple shadow-[0_0_12px_rgba(0,212,255,0.5)]" />
+      <div className="md:hidden absolute left-0 top-8 w-3 h-3 rounded-full bg-gradient-to-r from-accent-blue to-accent-purple shadow-[0_0_12px_var(--glow-accent)]" />
 
       <div
         className={cn(
-          "ml-8 md:ml-0 bg-bg-secondary/60 backdrop-blur-sm border border-border-subtle rounded-2xl p-6 hover:border-accent-blue/20 transition-all duration-300 cursor-pointer",
+          "ml-8 md:ml-0 glass-card p-6 transition-all duration-300 cursor-pointer",
           expanded && "border-accent-blue/20"
         )}
         onClick={() => setExpanded(!expanded)}
@@ -148,12 +149,23 @@ function GradientDescentOverlay() {
   const isInView = useInView(ref, { once: true, amount: 0.3 });
   const [pathLength, setPathLength] = useState(0);
   const pathRef = useRef<SVGPathElement>(null);
+  const { resolvedTheme } = useTheme();
+  const isLight = resolvedTheme === "light";
 
   useEffect(() => {
     if (pathRef.current) {
       setPathLength(pathRef.current.getTotalLength());
     }
   }, []);
+
+  // Theme-aware colors
+  const contourPrimary = isLight ? "rgba(139, 90, 43, 0.06)" : "rgba(0, 212, 255, 0.04)";
+  const contourSecondary = isLight ? "rgba(197, 146, 46, 0.04)" : "rgba(123, 47, 255, 0.03)";
+  const glowColor = isLight ? "rgba(139, 90, 43, 0.10)" : "rgba(0, 212, 255, 0.12)";
+  const glowEnd = isLight ? "rgba(139, 90, 43, 0)" : "rgba(0, 212, 255, 0)";
+  const descentTop = isLight ? "rgba(160, 82, 45, 0.35)" : "rgba(255, 100, 80, 0.4)";
+  const descentMid = isLight ? "rgba(197, 146, 46, 0.3)" : "rgba(123, 47, 255, 0.35)";
+  const descentBottom = isLight ? "rgba(139, 90, 43, 0.45)" : "rgba(0, 212, 255, 0.5)";
 
   // The descent path curves gently as it goes down
   const descentPath = "M 50 20 C 60 120, 38 220, 55 320 C 68 420, 42 520, 50 620 C 56 720, 44 820, 50 920";
@@ -175,7 +187,7 @@ function GradientDescentOverlay() {
             rx={40 - i * 6}
             ry={60 - i * 8}
             fill="none"
-            stroke="rgba(0, 212, 255, 0.04)"
+            stroke={contourPrimary}
             strokeWidth="0.5"
           />
           <ellipse
@@ -184,7 +196,7 @@ function GradientDescentOverlay() {
             rx={30 - i * 4}
             ry={45 - i * 6}
             fill="none"
-            stroke="rgba(123, 47, 255, 0.03)"
+            stroke={contourSecondary}
             strokeWidth="0.3"
           />
         </g>
@@ -193,8 +205,8 @@ function GradientDescentOverlay() {
       {/* Global minimum glow at bottom */}
       <defs>
         <radialGradient id="minimumGlow" cx="50%" cy="100%" r="30%">
-          <stop offset="0%" stopColor="rgba(0, 212, 255, 0.12)" />
-          <stop offset="100%" stopColor="rgba(0, 212, 255, 0)" />
+          <stop offset="0%" stopColor={glowColor} />
+          <stop offset="100%" stopColor={glowEnd} />
         </radialGradient>
       </defs>
       <rect x="0" y="820" width="100" height="120" fill="url(#minimumGlow)" />
@@ -202,9 +214,9 @@ function GradientDescentOverlay() {
       {/* Gradient descent path */}
       <defs>
         <linearGradient id="descentGradient" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="rgba(255, 100, 80, 0.4)" />
-          <stop offset="50%" stopColor="rgba(123, 47, 255, 0.35)" />
-          <stop offset="100%" stopColor="rgba(0, 212, 255, 0.5)" />
+          <stop offset="0%" stopColor={descentTop} />
+          <stop offset="50%" stopColor={descentMid} />
+          <stop offset="100%" stopColor={descentBottom} />
         </linearGradient>
       </defs>
       <path

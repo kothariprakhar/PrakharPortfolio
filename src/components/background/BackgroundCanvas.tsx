@@ -84,8 +84,25 @@ export default function BackgroundCanvas() {
       resizeTimer = setTimeout(resize, 250);
     };
 
+    // Reduced motion: render a single static frame and stop
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
     resize();
     window.addEventListener("resize", debouncedResize);
+
+    if (prefersReducedMotion) {
+      // Render static starfield only, skip all animations
+      if (starfieldCanvasRef.current) {
+        ctx.save();
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.drawImage(starfieldCanvasRef.current, 0, 0);
+        ctx.restore();
+      }
+      return () => {
+        window.removeEventListener("resize", debouncedResize);
+        clearTimeout(resizeTimer);
+      };
+    }
 
     const onMouseMove = (e: MouseEvent) => {
       actualMouseRef.current.x = e.clientX;
