@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-@theme inline {
+@theme {
   --color-bg-primary: #0A0A0F;
   --color-bg-secondary: #12121A;
   --color-bg-tertiary: #1A1A2E;
@@ -35,11 +35,11 @@ html.light {
   --color-bg-tertiary: #DFD5BC;
   --color-text-primary: #1A1A2E;
   --color-text-secondary: #3D3D5C;
-  --color-text-muted: #7A7A96;
+  --color-text-muted: #5C5C72;
   --color-accent-blue: #1B3F6B;
-  --color-accent-purple: #2E5090;
-  --color-accent-magenta: #6B3A5D;
-  --color-node-gold: #8B6914;
+  --color-accent-purple: #1B3F6B;
+  --color-accent-magenta: #2B4F3B;
+  --color-node-gold: #5C4A1E;
   --color-glow-blue: rgba(27, 63, 107, 0.10);
   --color-glow-purple: rgba(46, 80, 144, 0.08);
   --color-border-subtle: rgba(27, 63, 107, 0.08);
@@ -210,13 +210,60 @@ html.light .glass-card:hover {
     0 8px 30px rgba(27, 63, 107, 0.10);
 }
 
-/* Light mode: no gradient text — plain deep blue */
+/* ══════════════════════════════════════
+   LIGHT THEME — Flatten all sci-fi elements
+   ══════════════════════════════════════ */
+
+/* No gradient text — plain deep blue */
 html.light .bg-clip-text.text-transparent {
   -webkit-background-clip: unset !important;
   background-clip: unset !important;
   -webkit-text-fill-color: unset !important;
   color: var(--color-accent-blue) !important;
   background: none !important;
+}
+
+/* Gradient buttons → solid deep blue (only on interactive elements) */
+html.light a.bg-gradient-to-r,
+html.light button.bg-gradient-to-r,
+html.light [role="button"].bg-gradient-to-r {
+  background: var(--color-accent-blue) !important;
+}
+
+/* Avatar circle — solid deep blue */
+html.light .bg-gradient-to-br.from-accent-blue.to-accent-purple {
+  background: var(--color-accent-blue) !important;
+}
+
+/* Timeline dots — solid deep blue, no glow */
+html.light .rounded-full.bg-gradient-to-r.from-accent-blue {
+  background: var(--color-accent-blue) !important;
+  box-shadow: none !important;
+}
+
+/* Scroll-snap for vertical page-turn feel */
+html.light {
+  scroll-snap-type: y proximity;
+}
+html.light section[id] {
+  scroll-snap-align: start;
+  position: relative;
+}
+/* Page-edge separator between sections */
+html.light section[id]::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 5%;
+  right: 5%;
+  height: 1px;
+  background: linear-gradient(to right,
+    transparent,
+    rgba(120, 80, 30, 0.15) 20%,
+    rgba(120, 80, 30, 0.22) 50%,
+    rgba(120, 80, 30, 0.15) 80%,
+    transparent);
+  box-shadow: 0 1px 3px rgba(120, 80, 30, 0.06);
 }
 
 /* Parchment corner fold on cards */
