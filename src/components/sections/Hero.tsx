@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ChevronDown } from "lucide-react";
-import { HERO_ROLES } from "@/lib/constants";
+import { Download } from "lucide-react";
+import { HERO_ROLES, SOCIAL_LINKS } from "@/lib/constants";
 import { MagneticButton } from "@/components/ui/MagneticButton";
 import { registerHoverWell } from "@/components/background/gravityWellStore";
 
@@ -119,8 +120,10 @@ export function Hero() {
           style={{ y: subtitleY }}
           className="mt-6 md:mt-8 text-text-secondary text-lg md:text-xl max-w-2xl leading-relaxed"
         >
-          Kellogg MBA + AI candidate at Northwestern. I build products
-          that turn complex AI into elegant user experiences.
+          AI Product Manager with 6+ years shipping enterprise products. Scaled
+          NLP-powered experiences from <span className="text-text-primary font-semibold">0 → $5M ARR</span> at
+          Leena AI, serving <span className="text-text-primary font-semibold">1.5M+ users</span> across 90+
+          enterprises. Now at Kellogg + McCormick combining business strategy with applied AI.
         </motion.p>
 
         <motion.div
@@ -141,11 +144,22 @@ export function Hero() {
           </MagneticButton>
           <MagneticButton
             as="a"
+            href={SOCIAL_LINKS.resume}
+            warpId="hero-cta-resume"
+            warpStrength={20}
+            warpRadius={150}
+            className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full border border-accent-blue/40 text-accent-blue font-medium text-sm hover:bg-accent-blue/10 transition-all duration-300"
+          >
+            <Download size={16} />
+            Resume
+          </MagneticButton>
+          <MagneticButton
+            as="a"
             href="#contact"
             warpId="hero-cta-secondary"
             warpStrength={20}
             warpRadius={150}
-            className="inline-flex items-center justify-center px-8 py-3.5 rounded-full border border-accent-blue/30 text-accent-blue font-medium text-sm hover:bg-accent-blue/10 transition-all duration-300"
+            className="inline-flex items-center justify-center px-8 py-3.5 rounded-full text-text-secondary hover:text-text-primary font-medium text-sm transition-all duration-300"
           >
             Get In Touch
           </MagneticButton>

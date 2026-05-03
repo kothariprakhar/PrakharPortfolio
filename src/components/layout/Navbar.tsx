@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Sun, Moon } from "lucide-react";
-import { NAV_LINKS } from "@/lib/constants";
+import { Menu, X, Sun, Moon, Download } from "lucide-react";
+import { NAV_LINKS, SOCIAL_LINKS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { useSpacetimeWarp } from "@/components/background/useSpacetimeWarp";
 import { MagneticButton } from "@/components/ui/MagneticButton";
@@ -126,14 +126,15 @@ export function Navbar() {
             </button>
             <MagneticButton
               as="a"
-              href={isHome ? "#contact" : "/#contact"}
+              href={SOCIAL_LINKS.resume}
               warpId="nav-cta"
               warpStrength={18}
               warpRadius={150}
               magnetStrength={0.25}
-              className="inline-flex items-center px-5 py-2 text-sm font-medium rounded-full border border-accent-blue/30 text-accent-blue hover:bg-accent-blue/10 transition-all duration-300"
+              className="inline-flex items-center gap-1.5 px-5 py-2 text-sm font-medium rounded-full border border-accent-blue/40 text-accent-blue hover:bg-accent-blue/10 transition-all duration-300"
             >
-              Let&apos;s Talk
+              <Download size={14} />
+              Resume
             </MagneticButton>
           </div>
 
@@ -191,11 +192,12 @@ export function Navbar() {
                   {resolvedTheme === "dark" ? <Sun size={22} /> : <Moon size={22} />}
                 </button>
                 <Link
-                  href={isHome ? "#contact" : "/#contact"}
+                  href={SOCIAL_LINKS.resume}
                   onClick={() => setMobileOpen(false)}
-                  className="mt-2 px-8 py-3 rounded-full bg-gradient-to-r from-accent-blue to-accent-purple text-white font-medium"
+                  className="mt-2 inline-flex items-center gap-2 px-8 py-3 rounded-full bg-gradient-to-r from-accent-blue to-accent-purple text-white font-medium"
                 >
-                  Let&apos;s Talk
+                  <Download size={16} />
+                  Resume
                 </Link>
               </motion.div>
             </nav>

@@ -91,6 +91,12 @@ function TimelineItem({
           {item.role}
         </h3>
         <p className="text-text-secondary text-sm mt-1">{item.companyShort}</p>
+        {"contextNote" in item && item.contextNote && (
+          <p className="mt-2 inline-flex items-start gap-1.5 text-[11px] font-mono tracking-wider text-text-muted italic leading-snug">
+            <span className="text-accent-blue/60 not-italic">※</span>
+            {item.contextNote}
+          </p>
+        )}
         <p className="text-text-muted text-sm mt-3 leading-relaxed">{item.summary}</p>
 
         <button

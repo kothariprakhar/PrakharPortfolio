@@ -8,23 +8,23 @@ export const NAV_LINKS = [
 ] as const;
 
 export const SOCIAL_LINKS = {
-  linkedin: "https://www.linkedin.com/in/prakhar-kothari-sde/",
+  linkedin: "https://www.linkedin.com/in/prakhar--kothari/",
   github: "https://github.com/kothariprakhar",
   email: "prakhar.kothari@kellogg.northwestern.edu",
+  resume: "/resume.pdf",
 } as const;
 
 export const HERO_ROLES = [
-  "Product Manager",
-  "AI Engineer",
-  "Technical Leader",
-  "Builder",
+  "AI Product Manager",
+  "Kellogg MBA + AI",
+  "ex-Leena AI · Unacademy",
 ] as const;
 
 export const STATS = [
-  { value: "0.3", suffix: "%", label: "Top percentile — Indian Civil Services", prefix: "Top " },
+  { value: "5", suffix: "M", label: "ARR scaled in 10 months at Leena AI", prefix: "$" },
+  { value: "1.5", suffix: "M", label: "Users on AI products shipped", prefix: "" },
+  { value: "6", suffix: "+", label: "Years shipping AI-first products", prefix: "" },
   { value: "3.89", suffix: "", label: "GPA at Kellogg (Dean's List)", prefix: "" },
-  { value: "3", suffix: "+", label: "Products launched to scale", prefix: "" },
-  { value: "7", suffix: "+", label: "Organizations consulted", prefix: "" },
 ] as const;
 
 export const JOURNEY = [
@@ -77,20 +77,21 @@ export const EXPERIENCE = [
   },
   {
     id: "consultant",
-    role: "Product Management Consultant",
-    company: "Independent Consultant",
-    companyShort: "Independent",
+    role: "Product Consultant",
+    company: "Zetwerk + 6 organizations across AI, Fintech, and EdTech",
+    companyShort: "Zetwerk + 6 others",
     period: "May 2023 – May 2025",
     location: "India & UK",
+    contextNote: "Contract-only by design: UK post-study visa restricted full-time employment.",
     summary:
-      "Collaborated with 7+ organizations on AI-powered product strategy, procurement automation, and fintech features.",
+      "Engaged by 7 organizations including Zetwerk on AI product strategy, procurement automation, and fintech features.",
     details: [
-      "Led 30+ stakeholder interviews for AI procurement automation on a $3B manufacturing marketplace",
-      "Built business case for multimodal AI engine-based buyer-vendor matching with B-Rep Transformer based 3D CAD parsing",
-      "Reduced procurement cycle time by 32%, unlocking $80M+ in efficiency gains",
-      "Architected smart salary allocation feature for $4.5B digital bank, increasing MAU by 22% in first quarter",
+      "Zetwerk ($3B+ manufacturing marketplace): Led product strategy for AI procurement engine — delivered 32% cycle time reduction in pilot cohort, with $80M+ efficiency unlock projected at full rollout",
+      "Authored PRD for multimodal AI buyer-vendor matching using B-Rep Transformer-based 3D CAD parsing; ran 30+ stakeholder interviews to define 47 decision variables",
+      "Smart salary allocation feature for a $4.5B digital bank — drove 22% MAU increase in the first quarter post-launch",
+      "Shipped 5+ AI-powered features across engagements; primary focus on enterprise AI, automation, and fintech",
     ],
-    technologies: ["AI/ML", "Product Strategy", "3D CAD Parsing", "Fintech"],
+    technologies: ["AI/ML", "Product Strategy", "3D CAD Parsing", "Fintech", "Enterprise AI"],
     type: "work" as const,
   },
   {
@@ -122,7 +123,7 @@ export const EXPERIENCE = [
     details: [
       "Led Employee Engagement product from conception to $5M ARR in 10 months across 90+ enterprises",
       "Owned HR virtual assistant v2.0 roadmap, shipping 25+ features for $3M new annual revenue and 1.5M users",
-      "Partnered with 4 Fortune 500 clients on NLP-based attrition prediction tool, projecting $15M in savings",
+      "Partnered with 4 Fortune 500 clients on NLP-based attrition prediction; co-developed model with $15M in savings modeled across pilot cohort",
       "Prototyped onboarding flows that cut completion time by 48%",
       "Architected microservices for 250% user growth; reduced API response times by 40%, 99.9% uptime",
       "Built enterprise component library of 150+ reusable components, accelerating development by 60%",
@@ -153,25 +154,25 @@ export const PROJECTS = [
   {
     id: "ai-procurement",
     title: "AI-Powered Procurement Automation",
-    subtitle: "Multimodal AI for $3B Manufacturing Marketplace",
+    subtitle: "Multimodal AI for Zetwerk — $3B Manufacturing Marketplace",
     type: "AI" as const,
     description:
       "Led product strategy for an AI engine that automates buyer-vendor matching using 3D CAD parsing and multimodal transformers.",
     problem: "Procurement cycles were slow and manual, costing the marketplace millions in inefficiency.",
     approach: "Led stakeholder interviews, built the business case, and prioritized a B-Rep Transformer based approach for 3D CAD analysis.",
-    outcome: "32% reduction in cycle time, $80M+ in projected efficiency gains.",
+    outcome: "Pilot delivered 32% cycle-time reduction; $80M+ efficiency unlock projected at full rollout.",
     technologies: ["AI/ML", "Computer Vision", "3D CAD", "Product Strategy"],
     featured: true,
     caseStudy: {
       heroMetrics: [
-        { value: "32%", label: "Cycle Time Reduction" },
-        { value: "$80M+", label: "Projected Savings" },
+        { value: "32%", label: "Cycle Time Reduction (Pilot)" },
+        { value: "15%", label: "Matching Accuracy vs. Manual" },
         { value: "$3B", label: "Marketplace Volume" },
       ],
       sections: [
         {
           heading: "Context",
-          content: "A leading manufacturing marketplace processing $3B+ in annual transactions relied on manual procurement workflows. Buyers uploaded 3D CAD files and specifications, then human operators manually matched them with vendors — a process taking days per RFQ and costing the platform millions in operational overhead.",
+          content: "Zetwerk, a manufacturing marketplace processing $3B+ in annual transactions, relied on manual procurement workflows. Buyers uploaded 3D CAD files and specifications, then human operators manually matched them with vendors — a process taking days per RFQ and costing the platform millions in operational overhead. I was engaged as a product consultant to lead the AI automation initiative.",
         },
         {
           heading: "The Problem",
@@ -193,12 +194,12 @@ export const PROJECTS = [
         },
         {
           heading: "Results & Impact",
-          content: "The AI engine reduced procurement cycle time by 32% in the pilot cohort and projected $80M+ in efficiency gains at full scale. Matching accuracy exceeded human operators by 15% on standardized part categories. The system now processes the majority of incoming RFQs with minimal human review, freeing the operations team to focus on complex, non-standard requests.",
+          content: "In the pilot cohort, the AI engine delivered a 32% reduction in procurement cycle time and improved matching accuracy by 15% over human operators on standardized part categories. Average RFQ turnaround dropped from 3 days to 1. Based on pilot performance, full-scale rollout was modeled to unlock $80M+ in annual efficiency gains. The system now processes the majority of incoming RFQs with minimal human review.",
           metrics: [
-            { value: "32%", label: "Reduction in procurement cycle time" },
-            { value: "$80M+", label: "Projected annual efficiency gains" },
-            { value: "15%", label: "Improvement in matching accuracy vs. manual" },
-            { value: "3→1 day", label: "Average RFQ turnaround" },
+            { value: "32%", label: "Cycle time reduction (delivered, pilot)" },
+            { value: "15%", label: "Matching accuracy gain (delivered)" },
+            { value: "3→1 day", label: "RFQ turnaround (delivered)" },
+            { value: "$80M+", label: "Annual savings (modeled at full rollout)" },
           ],
         },
         {
@@ -321,10 +322,10 @@ export const PROJECTS = [
           heading: "Results & Impact",
           content: "The platform reached $5M ARR within 10 months of launch, adopted by 90+ enterprises. Response rates averaged 72% — nearly double the industry benchmark — driven by the conversational survey format via the virtual assistant.",
           metrics: [
-            { value: "$5M", label: "ARR achieved in 10 months" },
-            { value: "90+", label: "Enterprise clients onboarded" },
+            { value: "$5M", label: "ARR achieved in 10 months (delivered)" },
+            { value: "90+", label: "Enterprise clients onboarded (delivered)" },
             { value: "72%", label: "Survey response rate (vs. 35% industry avg)" },
-            { value: "$15M", label: "Projected savings from attrition prediction" },
+            { value: "$15M", label: "Attrition savings (modeled with Fortune 500 partner)" },
           ],
         },
         {
