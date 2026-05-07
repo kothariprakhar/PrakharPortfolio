@@ -1,46 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { Download } from "lucide-react";
-import { HERO_ROLES, SOCIAL_LINKS } from "@/lib/constants";
+import { SOCIAL_LINKS } from "@/lib/constants";
 import { MagneticButton } from "@/components/ui/MagneticButton";
-
-function TypewriterText() {
-  const [roleIndex, setRoleIndex] = useState(0);
-  const [charIndex, setCharIndex] = useState(0);
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  useEffect(() => {
-    const role = HERO_ROLES[roleIndex];
-    const speed = isDeleting ? 40 : 80;
-
-    if (!isDeleting && charIndex === role.length) {
-      setTimeout(() => setIsDeleting(true), 2000);
-      return;
-    }
-
-    if (isDeleting && charIndex === 0) {
-      setIsDeleting(false);
-      setRoleIndex((prev) => (prev + 1) % HERO_ROLES.length);
-      return;
-    }
-
-    const timer = setTimeout(() => {
-      setCharIndex((prev) => prev + (isDeleting ? -1 : 1));
-    }, speed);
-
-    return () => clearTimeout(timer);
-  }, [charIndex, isDeleting, roleIndex]);
-
-  return (
-    <span className="font-mono text-xs md:text-sm tracking-[0.08em] text-accent-blue uppercase">
-      {HERO_ROLES[roleIndex].substring(0, charIndex)}
-      <span className="animate-pulse">|</span>
-    </span>
-  );
-}
 
 const containerVariants = {
   hidden: {},
@@ -64,7 +29,7 @@ export function Hero() {
     offset: ["start start", "end start"],
   });
 
-  const typewriterY = useTransform(scrollYProgress, [0, 1], [0, -30]);
+  const eyebrowY = useTransform(scrollYProgress, [0, 1], [0, -30]);
   const headingY = useTransform(scrollYProgress, [0, 1], [0, -60]);
   const subtitleY = useTransform(scrollYProgress, [0, 1], [0, -80]);
   const buttonsY = useTransform(scrollYProgress, [0, 1], [0, -100]);
@@ -78,8 +43,10 @@ export function Hero() {
         animate="visible"
         className="max-w-[1200px] mx-auto text-center md:text-left w-full"
       >
-        <motion.div variants={itemVariants} style={{ y: typewriterY }}>
-          <TypewriterText />
+        <motion.div variants={itemVariants} style={{ y: eyebrowY }}>
+          <span className="font-mono text-xs md:text-sm tracking-[0.12em] text-accent-blue uppercase">
+            AI Product Manager &middot; Kellogg MBA + AI
+          </span>
         </motion.div>
 
         <motion.div variants={itemVariants} style={{ y: headingY }}>

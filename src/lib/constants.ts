@@ -14,12 +14,6 @@ export const SOCIAL_LINKS = {
   resume: "/resume.pdf",
 } as const;
 
-export const HERO_ROLES = [
-  "AI Product Manager",
-  "Kellogg MBA + AI",
-  "ex-Leena AI · Unacademy",
-] as const;
-
 export const STATS = [
   { value: "5", suffix: "M", label: "ARR scaled in 10 months at Leena AI", prefix: "$" },
   { value: "1.5", suffix: "M", label: "Users on AI products shipped", prefix: "" },
