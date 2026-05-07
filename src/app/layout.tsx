@@ -1,17 +1,10 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, Inter, JetBrains_Mono, Cormorant_Garamond } from "next/font/google";
+import { Space_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
 import { MotionProvider } from "@/components/ui/MotionProvider";
-import { ThemeProvider } from "@/context/ThemeContext";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-display",
-  subsets: ["latin"],
-  weight: ["500", "700"],
-});
-
-const cormorantGaramond = Cormorant_Garamond({
-  variable: "--font-serif",
   subsets: ["latin"],
   weight: ["500", "700"],
 });
@@ -41,9 +34,6 @@ export const metadata: Metadata = {
   },
 };
 
-// Inline script to set theme class before paint — prevents flash
-const themeScript = `(function(){var t=localStorage.getItem('pk-theme');if(!t||t==='system'){t=matchMedia('(prefers-color-scheme:light)').matches?'light':'dark'}document.documentElement.classList.add(t)})()`;
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -52,15 +42,10 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${spaceGrotesk.variable} ${cormorantGaramond.variable} ${inter.variable} ${jetbrainsMono.variable} antialiased`}
+      className={`${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable} antialiased`}
     >
       <body className="min-h-screen bg-bg-primary text-text-primary font-body">
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
-        <ThemeProvider>
-          <MotionProvider>
-            {children}
-          </MotionProvider>
-        </ThemeProvider>
+        <MotionProvider>{children}</MotionProvider>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -87,7 +72,7 @@ export default function RootLayout({
                 "Computer Vision",
               ],
               sameAs: [
-                "https://www.linkedin.com/in/prakhar-kothari-sde/",
+                "https://www.linkedin.com/in/prakhar--kothari/",
                 "https://github.com/kothariprakhar",
               ],
             }),

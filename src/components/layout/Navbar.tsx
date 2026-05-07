@@ -4,12 +4,11 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Sun, Moon, Download } from "lucide-react";
+import { Menu, X, Download } from "lucide-react";
 import { NAV_LINKS, SOCIAL_LINKS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { useSpacetimeWarp } from "@/components/background/useSpacetimeWarp";
 import { MagneticButton } from "@/components/ui/MagneticButton";
-import { useTheme } from "@/context/ThemeContext";
 
 function NavLink({ href, label, isActive }: { href: string; label: string; isActive: boolean }) {
   const { ref, onMouseEnter, onMouseLeave } = useSpacetimeWarp(`nav-${label}`, {
@@ -45,7 +44,6 @@ export function Navbar() {
   const [activeSection, setActiveSection] = useState("");
   const pathname = usePathname();
   const isHome = pathname === "/";
-  const { resolvedTheme, toggleTheme } = useTheme();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 100);
@@ -105,25 +103,8 @@ export function Navbar() {
             })}
           </div>
 
-          {/* Theme toggle + CTA */}
-          <div className="hidden md:flex items-center gap-3">
-            <button
-              onClick={toggleTheme}
-              className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-bg-tertiary/50 transition-colors text-text-secondary hover:text-text-primary"
-              aria-label="Toggle theme"
-            >
-              <AnimatePresence mode="wait" initial={false}>
-                <motion.span
-                  key={resolvedTheme}
-                  initial={{ rotate: -90, opacity: 0, scale: 0.5 }}
-                  animate={{ rotate: 0, opacity: 1, scale: 1 }}
-                  exit={{ rotate: 90, opacity: 0, scale: 0.5 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  {resolvedTheme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-                </motion.span>
-              </AnimatePresence>
-            </button>
+          {/* CTA */}
+          <div className="hidden md:flex items-center">
             <MagneticButton
               as="a"
               href={SOCIAL_LINKS.resume}
@@ -182,19 +163,11 @@ export function Navbar() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: NAV_LINKS.length * 0.1 }}
-                className="flex flex-col items-center gap-4"
               >
-                <button
-                  onClick={toggleTheme}
-                  className="w-12 h-12 rounded-full flex items-center justify-center bg-bg-tertiary/50 text-text-secondary hover:text-text-primary transition-colors"
-                  aria-label="Toggle theme"
-                >
-                  {resolvedTheme === "dark" ? <Sun size={22} /> : <Moon size={22} />}
-                </button>
                 <Link
                   href={SOCIAL_LINKS.resume}
                   onClick={() => setMobileOpen(false)}
-                  className="mt-2 inline-flex items-center gap-2 px-8 py-3 rounded-full bg-gradient-to-r from-accent-blue to-accent-purple text-white font-medium"
+                  className="mt-2 inline-flex items-center gap-2 px-8 py-3 rounded-full bg-accent-blue text-white font-medium"
                 >
                   <Download size={16} />
                   Resume

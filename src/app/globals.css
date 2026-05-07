@@ -1,19 +1,27 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg-primary: #0A0A0F;
-  --color-bg-secondary: #12121A;
-  --color-bg-tertiary: #1A1A2E;
-  --color-text-primary: #E8E8F0;
-  --color-text-secondary: #9898B0;
-  --color-text-muted: #5A5A78;
-  --color-accent-blue: #00D4FF;
-  --color-accent-purple: #7B2FFF;
-  --color-accent-magenta: #FF2DAA;
-  --color-node-gold: #FFB847;
-  --color-glow-blue: rgba(0, 212, 255, 0.15);
-  --color-glow-purple: rgba(123, 47, 255, 0.15);
-  --color-border-subtle: rgba(255, 255, 255, 0.06);
+  /* ── Surfaces ── */
+  --color-bg-primary: #FAF8F3;
+  --color-bg-secondary: #F2EEE5;
+  --color-bg-tertiary: #E8E2D4;
+
+  /* ── Text ── */
+  --color-text-primary: #1A1815;
+  --color-text-secondary: #4A453D;
+  --color-text-muted: #8A8579;
+
+  /* ── Accent (clay family) ──
+     Note: kept legacy variable names (accent-blue/purple/magenta) to avoid mass
+     refactor; all map to the same warm clay family. */
+  --color-accent-blue: #A0522D;     /* primary clay */
+  --color-accent-purple: #7C3F1F;   /* deep clay — gradient pair */
+  --color-accent-magenta: #6B4423;  /* chestnut — third category */
+  --color-node-gold: #9E7B2F;       /* warm bronze — fourth category */
+
+  --color-glow-blue: rgba(160, 82, 45, 0.15);
+  --color-glow-purple: rgba(124, 63, 31, 0.10);
+  --color-border-subtle: rgba(160, 82, 45, 0.10);
 
   --font-display: "Space Grotesk", system-ui, sans-serif;
   --font-body: "Inter", system-ui, sans-serif;
@@ -22,41 +30,10 @@
 
 /* ── Theme-agnostic CSS custom properties ── */
 :root {
-  --gradient-from: #00D4FF;
-  --gradient-to: #7B2FFF;
-  --glow-accent: rgba(0, 212, 255, 0.3);
-  --divider-color: rgba(255, 255, 255, 0.06);
-}
-
-/* ── Light (vintage manuscript) theme variable overrides ── */
-html.light {
-  --color-bg-primary: #F4EDDA;
-  --color-bg-secondary: #EBE2CC;
-  --color-bg-tertiary: #DFD5BC;
-  --color-text-primary: #1A1A2E;
-  --color-text-secondary: #3D3D5C;
-  --color-text-muted: #5C5C72;
-  --color-accent-blue: #1B3F6B;
-  --color-accent-purple: #1B3F6B;
-  --color-accent-magenta: #2B4F3B;
-  --color-node-gold: #5C4A1E;
-  --color-glow-blue: rgba(27, 63, 107, 0.10);
-  --color-glow-purple: rgba(46, 80, 144, 0.08);
-  --color-border-subtle: rgba(27, 63, 107, 0.08);
-  --font-display: "Cormorant Garamond", "Space Grotesk", serif;
-
-  --gradient-from: #1B3F6B;
-  --gradient-to: #2E5090;
-  --glow-accent: rgba(27, 63, 107, 0.18);
-  --divider-color: rgba(27, 63, 107, 0.10);
-}
-
-/* ── Smooth theme transition ── */
-html.theme-transition,
-html.theme-transition *,
-html.theme-transition *::before,
-html.theme-transition *::after {
-  transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease !important;
+  --gradient-from: #A0522D;
+  --gradient-to: #7C3F1F;
+  --glow-accent: rgba(160, 82, 45, 0.20);
+  --divider-color: rgba(160, 82, 45, 0.12);
 }
 
 html {
@@ -70,14 +47,9 @@ body {
 }
 
 /* ── Selection ── */
-html.dark ::selection,
 ::selection {
-  background: rgba(0, 212, 255, 0.3);
-  color: #fff;
-}
-html.light ::selection {
-  background: rgba(27, 63, 107, 0.2);
-  color: #1A1A2E;
+  background: rgba(160, 82, 45, 0.2);
+  color: #1A1815;
 }
 
 /* ── Scrollbar ── */
@@ -96,191 +68,19 @@ html.light ::selection {
 }
 
 /* ══════════════════════════════════════
-   DARK THEME — Spacetime overlays
-   ══════════════════════════════════════ */
-
-/* Vignette */
-html.dark body::before,
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background: radial-gradient(ellipse at center, transparent 50%, rgba(10, 10, 15, 0.4) 100%);
-}
-
-/* Noise grain */
-html.dark body::after,
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  pointer-events: none;
-  opacity: 0.03;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-  background-size: 256px 256px;
-  mix-blend-mode: overlay;
-}
-
-/* ══════════════════════════════════════
-   LIGHT THEME — Manuscript overlays
-   ══════════════════════════════════════ */
-
-/* Aged edges — heavy vintage burn at corners, edges, and creases */
-html.light body::before {
-  background:
-    /* Corner burns — dark, heavy */
-    radial-gradient(ellipse at 0% 0%, rgba(100, 60, 20, 0.55) 0%, rgba(130, 85, 30, 0.25) 25%, transparent 50%),
-    radial-gradient(ellipse at 100% 0%, rgba(100, 60, 20, 0.48) 0%, rgba(130, 85, 30, 0.20) 22%, transparent 45%),
-    radial-gradient(ellipse at 0% 100%, rgba(100, 60, 20, 0.48) 0%, rgba(130, 85, 30, 0.20) 22%, transparent 45%),
-    radial-gradient(ellipse at 100% 100%, rgba(100, 60, 20, 0.55) 0%, rgba(130, 85, 30, 0.25) 25%, transparent 50%),
-    /* Edge darkening — all four sides */
-    radial-gradient(ellipse at 50% 0%, rgba(120, 75, 25, 0.25) 0%, transparent 35%),
-    radial-gradient(ellipse at 50% 100%, rgba(120, 75, 25, 0.25) 0%, transparent 35%),
-    radial-gradient(ellipse at 0% 50%, rgba(120, 75, 25, 0.18) 0%, transparent 30%),
-    radial-gradient(ellipse at 100% 50%, rgba(120, 75, 25, 0.18) 0%, transparent 30%),
-    /* Overall vignette */
-    radial-gradient(ellipse at center, transparent 30%, rgba(130, 90, 40, 0.18) 100%);
-}
-
-/* Paper texture — heavy fibrous grain with visible creases */
-html.light body::after {
-  opacity: 0.18;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.025' numOctaves='8' stitchTiles='stitch' seed='3'/%3E%3CfeDiffuseLighting in='turbulence' lighting-color='%23fff' surfaceScale='4'%3E%3CfeDistantLight azimuth='45' elevation='40'/%3E%3C/feDiffuseLighting%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E");
-  background-size: 600px 600px;
-  mix-blend-mode: multiply;
-}
-
-/* Crease / crack lines at edges */
-html.light::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 2;
-  pointer-events: none;
-  background:
-    /* Horizontal crease lines near top and bottom */
-    linear-gradient(0deg, transparent 0%, transparent 2%, rgba(120, 80, 30, 0.06) 2.1%, transparent 2.4%, transparent 4%, rgba(100, 65, 20, 0.04) 4.1%, transparent 4.3%,
-      transparent 96%, rgba(100, 65, 20, 0.04) 96.1%, transparent 96.3%, transparent 97.5%, rgba(120, 80, 30, 0.06) 97.6%, transparent 97.9%, transparent 100%),
-    /* Vertical crease lines near left and right */
-    linear-gradient(90deg, transparent 0%, transparent 1.5%, rgba(120, 80, 30, 0.05) 1.6%, transparent 1.9%, transparent 3%, rgba(100, 65, 20, 0.03) 3.1%, transparent 3.3%,
-      transparent 97%, rgba(100, 65, 20, 0.03) 97.1%, transparent 97.3%, transparent 98.5%, rgba(120, 80, 30, 0.05) 98.6%, transparent 98.9%, transparent 100%);
-}
-
-/* ══════════════════════════════════════
-   Cards — Dark (glassmorphism) / Light (parchment)
+   Cards
    ══════════════════════════════════════ */
 
 .glass-card {
-  background: rgba(18, 18, 26, 0.4);
-  backdrop-filter: blur(16px) saturate(1.2);
-  -webkit-backdrop-filter: blur(16px) saturate(1.2);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow:
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.04),
-    0 4px 24px rgba(0, 0, 0, 0.2);
-  border-radius: 1rem;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  background: #F2EEE5;
+  border: 1px solid rgba(160, 82, 45, 0.10);
+  box-shadow: 0 1px 3px rgba(26, 24, 21, 0.04);
+  border-radius: 0.75rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
 }
 .glass-card:hover {
-  border-color: rgba(0, 212, 255, 0.15);
-  box-shadow:
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.06),
-    0 12px 40px rgba(0, 0, 0, 0.35),
-    0 0 20px rgba(0, 212, 255, 0.06);
-}
-
-/* Light mode: vintage paper cards */
-html.light .glass-card {
-  background: rgba(244, 237, 218, 0.80);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  border: 1px solid rgba(27, 63, 107, 0.08);
-  box-shadow:
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.5),
-    0 2px 12px rgba(0, 0, 0, 0.06);
-}
-html.light .glass-card:hover {
-  border-color: rgba(27, 63, 107, 0.18);
-  box-shadow:
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.5),
-    0 8px 30px rgba(27, 63, 107, 0.10);
-}
-
-/* ══════════════════════════════════════
-   LIGHT THEME — Flatten all sci-fi elements
-   ══════════════════════════════════════ */
-
-/* No gradient text — plain deep blue */
-html.light .bg-clip-text.text-transparent {
-  -webkit-background-clip: unset !important;
-  background-clip: unset !important;
-  -webkit-text-fill-color: unset !important;
-  color: var(--color-accent-blue) !important;
-  background: none !important;
-}
-
-/* Gradient buttons → solid deep blue (only on interactive elements) */
-html.light a.bg-gradient-to-r,
-html.light button.bg-gradient-to-r,
-html.light [role="button"].bg-gradient-to-r {
-  background: var(--color-accent-blue) !important;
-}
-
-/* Avatar circle — solid deep blue */
-html.light .bg-gradient-to-br.from-accent-blue.to-accent-purple {
-  background: var(--color-accent-blue) !important;
-}
-
-/* Timeline dots — solid deep blue, no glow */
-html.light .rounded-full.bg-gradient-to-r.from-accent-blue {
-  background: var(--color-accent-blue) !important;
-  box-shadow: none !important;
-}
-
-/* Scroll-snap for vertical page-turn feel */
-html.light {
-  scroll-snap-type: y proximity;
-}
-html.light section[id] {
-  scroll-snap-align: start;
-  position: relative;
-}
-/* Page-edge separator between sections */
-html.light section[id]::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 5%;
-  right: 5%;
-  height: 1px;
-  background: linear-gradient(to right,
-    transparent,
-    rgba(120, 80, 30, 0.15) 20%,
-    rgba(120, 80, 30, 0.22) 50%,
-    rgba(120, 80, 30, 0.15) 80%,
-    transparent);
-  box-shadow: 0 1px 3px rgba(120, 80, 30, 0.06);
-}
-
-/* Parchment corner fold on cards */
-html.light .glass-card {
-  position: relative;
-  overflow: hidden;
-}
-html.light .glass-card::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 20px;
-  height: 20px;
-  background:
-    linear-gradient(135deg, transparent 45%, rgba(180, 150, 100, 0.10) 45%, rgba(160, 130, 80, 0.16) 100%);
-  pointer-events: none;
+  border-color: rgba(160, 82, 45, 0.22);
+  box-shadow: 0 4px 16px rgba(26, 24, 21, 0.06);
 }
 
 /* ── Custom cursor: hide native cursor on fine pointer devices ── */

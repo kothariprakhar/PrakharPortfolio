@@ -1,8 +1,7 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
+import { useRef, useCallback } from "react";
 import { motion, useSpring, useMotionValue } from "framer-motion";
-import { registerHoverWell, unregisterHoverWell } from "@/components/background/gravityWellStore";
 
 interface MagneticButtonProps {
   children: React.ReactNode;
@@ -10,6 +9,7 @@ interface MagneticButtonProps {
   as?: "a" | "button";
   href?: string;
   onClick?: (e: React.MouseEvent) => void;
+  /** Retained for API compatibility with prior gravity-well system. No-op now. */
   warpId?: string;
   warpStrength?: number;
   warpRadius?: number;
@@ -22,13 +22,9 @@ export function MagneticButton({
   as = "button",
   href,
   onClick,
-  warpId,
-  warpStrength = 25,
-  warpRadius = 180,
   magnetStrength = 0.3,
 }: MagneticButtonProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const [hovered, setHovered] = useState(false);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const springX = useSpring(x, { stiffness: 200, damping: 20 });
@@ -47,24 +43,10 @@ export function MagneticButton({
     [x, y, magnetStrength]
   );
 
-  const handleMouseEnter = useCallback(
-    (e: React.MouseEvent) => {
-      setHovered(true);
-      if (warpId && ref.current) {
-        registerHoverWell(warpId, ref.current.getBoundingClientRect(), warpStrength, warpRadius);
-      }
-    },
-    [warpId, warpStrength, warpRadius]
-  );
-
   const handleMouseLeave = useCallback(() => {
-    setHovered(false);
     x.set(0);
     y.set(0);
-    if (warpId) {
-      unregisterHoverWell(warpId);
-    }
-  }, [x, y, warpId]);
+  }, [x, y]);
 
   const Component = as === "a" ? motion.a : motion.button;
 
@@ -73,7 +55,6 @@ export function MagneticButton({
       ref={ref}
       style={{ x: springX, y: springY }}
       onMouseMove={handleMouseMove}
-      onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       className="inline-block"
     >

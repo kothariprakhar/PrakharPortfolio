@@ -8,7 +8,6 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { EXPERIENCE } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { useSpacetimeWarp } from "@/components/background/useSpacetimeWarp";
-import { useTheme } from "@/context/ThemeContext";
 
 const LOSS_VALUES = ["L = 0.89", "L = 0.62", "L = 0.34", "L = 0.15", "L = 0.03"];
 
@@ -155,8 +154,6 @@ function GradientDescentOverlay() {
   const isInView = useInView(ref, { once: true, amount: 0.3 });
   const [pathLength, setPathLength] = useState(0);
   const pathRef = useRef<SVGPathElement>(null);
-  const { resolvedTheme } = useTheme();
-  const isLight = resolvedTheme === "light";
 
   useEffect(() => {
     if (pathRef.current) {
@@ -164,14 +161,14 @@ function GradientDescentOverlay() {
     }
   }, []);
 
-  // Theme-aware colors
-  const contourPrimary = isLight ? "rgba(27, 63, 107, 0.06)" : "rgba(0, 212, 255, 0.04)";
-  const contourSecondary = isLight ? "rgba(46, 80, 144, 0.04)" : "rgba(123, 47, 255, 0.03)";
-  const glowColor = isLight ? "rgba(27, 63, 107, 0.10)" : "rgba(0, 212, 255, 0.12)";
-  const glowEnd = isLight ? "rgba(27, 63, 107, 0)" : "rgba(0, 212, 255, 0)";
-  const descentTop = isLight ? "rgba(107, 58, 93, 0.30)" : "rgba(255, 100, 80, 0.4)";
-  const descentMid = isLight ? "rgba(46, 80, 144, 0.25)" : "rgba(123, 47, 255, 0.35)";
-  const descentBottom = isLight ? "rgba(27, 63, 107, 0.40)" : "rgba(0, 212, 255, 0.5)";
+  // Clay-family colors (single theme)
+  const contourPrimary = "rgba(160, 82, 45, 0.06)";
+  const contourSecondary = "rgba(124, 63, 31, 0.04)";
+  const glowColor = "rgba(160, 82, 45, 0.10)";
+  const glowEnd = "rgba(160, 82, 45, 0)";
+  const descentTop = "rgba(107, 68, 35, 0.30)";
+  const descentMid = "rgba(124, 63, 31, 0.30)";
+  const descentBottom = "rgba(160, 82, 45, 0.40)";
 
   // The descent path curves gently as it goes down
   const descentPath = "M 50 20 C 60 120, 38 220, 55 320 C 68 420, 42 520, 50 620 C 56 720, 44 820, 50 920";

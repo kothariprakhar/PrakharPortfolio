@@ -1,32 +1,16 @@
-"use client";
-
-import { useRef, useCallback } from "react";
-import { registerHoverWell, unregisterHoverWell } from "./gravityWellStore";
-import { useTheme } from "@/context/ThemeContext";
+import { useRef } from "react";
 
 /**
- * Hook that registers an HTML element as a dynamic gravity well on hover.
- * The spacetime grid warps around the element when the mouse enters.
- * No-ops in light mode (no canvas to warp).
+ * No-op hook retained for API compatibility with components that previously
+ * registered hover-driven gravity wells against the cosmic background canvas.
+ * The canvas was removed when the dark spacetime theme was retired; this hook
+ * now just returns a ref and inert handlers so call sites don't need to change.
  */
 export function useSpacetimeWarp(
-  id: string,
-  options?: { strength?: number; radius?: number }
+  _id: string,
+  _options?: { strength?: number; radius?: number }
 ) {
   const ref = useRef<HTMLElement>(null);
-  const { resolvedTheme } = useTheme();
-
-  const onMouseEnter = useCallback(() => {
-    if (resolvedTheme !== "dark") return;
-    const el = ref.current;
-    if (!el) return;
-    registerHoverWell(id, el.getBoundingClientRect(), options?.strength, options?.radius);
-  }, [id, options?.strength, options?.radius, resolvedTheme]);
-
-  const onMouseLeave = useCallback(() => {
-    if (resolvedTheme !== "dark") return;
-    unregisterHoverWell(id);
-  }, [id, resolvedTheme]);
-
-  return { ref, onMouseEnter, onMouseLeave };
+  const noop = () => {};
+  return { ref, onMouseEnter: noop, onMouseLeave: noop };
 }

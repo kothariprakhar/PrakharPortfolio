@@ -10,7 +10,7 @@ export default async function Image() {
     (
       <div
         style={{
-          background: "#0A0A0F",
+          background: "#FAF8F3",
           width: "100%",
           height: "100%",
           display: "flex",
@@ -20,13 +20,13 @@ export default async function Image() {
           position: "relative",
         }}
       >
-        {/* Vignette */}
+        {/* Soft vignette */}
         <div
           style={{
             position: "absolute",
             inset: 0,
             background:
-              "radial-gradient(ellipse at center, transparent 40%, rgba(10,10,15,0.7) 100%)",
+              "radial-gradient(ellipse at center, transparent 50%, rgba(160,82,45,0.06) 100%)",
           }}
         />
 
@@ -35,7 +35,7 @@ export default async function Image() {
           style={{
             width: 120,
             height: 2,
-            background: "linear-gradient(to right, #00D4FF, #7B2FFF)",
+            background: "#A0522D",
             borderRadius: 1,
             marginBottom: 32,
           }}
@@ -46,7 +46,7 @@ export default async function Image() {
           style={{
             fontSize: 56,
             fontWeight: 700,
-            color: "#E8E8F0",
+            color: "#1A1815",
             letterSpacing: "-0.02em",
             lineHeight: 1.1,
           }}
@@ -60,7 +60,7 @@ export default async function Image() {
             marginTop: 16,
             fontSize: 18,
             fontWeight: 400,
-            color: "#00D4FF",
+            color: "#A0522D",
             letterSpacing: "0.12em",
             textTransform: "uppercase" as const,
           }}
@@ -73,7 +73,7 @@ export default async function Image() {
           style={{
             marginTop: 20,
             fontSize: 16,
-            color: "#9898B0",
+            color: "#4A453D",
             maxWidth: 500,
             textAlign: "center" as const,
             lineHeight: 1.5,
@@ -90,7 +90,7 @@ export default async function Image() {
             height: 1,
             marginTop: 32,
             background:
-              "linear-gradient(to right, transparent, rgba(0,212,255,0.3), rgba(123,47,255,0.3), transparent)",
+              "linear-gradient(to right, transparent, rgba(160,82,45,0.4), transparent)",
           }}
         />
       </div>

@@ -6,7 +6,6 @@ import { ChevronDown } from "lucide-react";
 import { Download } from "lucide-react";
 import { HERO_ROLES, SOCIAL_LINKS } from "@/lib/constants";
 import { MagneticButton } from "@/components/ui/MagneticButton";
-import { registerHoverWell } from "@/components/background/gravityWellStore";
 
 function TypewriterText() {
   const [roleIndex, setRoleIndex] = useState(0);
@@ -70,23 +69,6 @@ export function Hero() {
   const subtitleY = useTransform(scrollYProgress, [0, 1], [0, -80]);
   const buttonsY = useTransform(scrollYProgress, [0, 1], [0, -100]);
   const scrollIndicatorOpacity = useTransform(scrollYProgress, [0, 0.3], [1, 0]);
-
-  // Gravitational text: register heading as a persistent gravity well
-  useEffect(() => {
-    const updateWell = () => {
-      if (headingRef.current) {
-        registerHoverWell("hero-heading", headingRef.current.getBoundingClientRect(), 60, 350);
-      }
-    };
-
-    // Small delay for layout to settle
-    const timer = setTimeout(updateWell, 500);
-    window.addEventListener("resize", updateWell);
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener("resize", updateWell);
-    };
-  }, []);
 
   return (
     <section ref={sectionRef} className="relative min-h-screen flex items-center justify-center px-4 md:px-6">

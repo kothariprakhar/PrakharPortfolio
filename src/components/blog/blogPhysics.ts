@@ -32,31 +32,31 @@ const TAG_REGIONS: TagRegion[] = [
   {
     tags: ["ai", "ml", "nlp", "deep learning", "computer vision", "llm", "rag", "ai strategy"],
     center: { x: 0.25, y: 0.35 },
-    color: "rgba(0, 212, 255, 0.8)",
+    color: "rgba(160, 82, 45, 0.8)",
     label: "AI / ML",
   },
   {
     tags: ["product", "strategy", "product thinking", "roadmap", "gtm", "user research"],
     center: { x: 0.72, y: 0.28 },
-    color: "rgba(255, 184, 71, 0.8)",
+    color: "rgba(158, 123, 47, 0.8)",
     label: "Product",
   },
   {
     tags: ["engineering", "react", "typescript", "python", "aws", "building"],
     center: { x: 0.5, y: 0.68 },
-    color: "rgba(255, 45, 170, 0.8)",
+    color: "rgba(107, 68, 35, 0.8)",
     label: "Engineering",
   },
   {
     tags: ["career", "mba", "leadership", "product management"],
     center: { x: 0.76, y: 0.62 },
-    color: "rgba(123, 47, 255, 0.8)",
+    color: "rgba(124, 63, 31, 0.8)",
     label: "Career",
   },
   {
     tags: ["startup", "edtech", "entrepreneurship"],
     center: { x: 0.28, y: 0.62 },
-    color: "rgba(80, 220, 120, 0.8)",
+    color: "rgba(92, 107, 58, 0.8)",
     label: "Startup",
   },
 ];
@@ -100,7 +100,7 @@ export function computeBlogPositions(
     let cx = 0.5;
     let cy = 0.5;
     let matched = 0;
-    let primaryColor = "rgba(0, 212, 255, 0.8)";
+    let primaryColor = "rgba(160, 82, 45, 0.8)";
 
     for (const tag of post.tags) {
       const region = findTagRegion(tag);

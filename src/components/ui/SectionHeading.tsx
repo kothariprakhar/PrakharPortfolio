@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useTheme } from "@/context/ThemeContext";
 
 interface SectionHeadingProps {
   label: string;
@@ -12,8 +11,6 @@ interface SectionHeadingProps {
 
 export function SectionHeading({ label, title, gradientWord, subtitle }: SectionHeadingProps) {
   const parts = title.split(gradientWord);
-  const { resolvedTheme } = useTheme();
-  const isLight = resolvedTheme === "light";
 
   return (
     <div className="mb-16 md:mb-20">
@@ -33,9 +30,7 @@ export function SectionHeading({ label, title, gradientWord, subtitle }: Section
         className="font-display font-bold text-3xl md:text-[2.5rem] leading-tight"
       >
         {parts[0]}
-        <span className="bg-gradient-to-r from-accent-blue to-accent-purple bg-clip-text text-transparent">
-          {gradientWord}
-        </span>
+        <span className="text-accent-blue">{gradientWord}</span>
         {parts[1]}
       </motion.h2>
       {subtitle && (
@@ -48,22 +43,6 @@ export function SectionHeading({ label, title, gradientWord, subtitle }: Section
         >
           {subtitle}
         </motion.p>
-      )}
-      {/* Manuscript flourish divider — light mode only */}
-      {isLight && (
-        <motion.div
-          initial={{ opacity: 0, scaleX: 0 }}
-          whileInView={{ opacity: 1, scaleX: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.3, duration: 0.6 }}
-          className="mt-6 flex items-center gap-3 max-w-xs"
-        >
-          <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-accent-blue/30" />
-          <svg width="16" height="16" viewBox="0 0 16 16" className="text-accent-blue/40 shrink-0">
-            <path d="M8 1L10 6L15 8L10 10L8 15L6 10L1 8L6 6Z" fill="currentColor" />
-          </svg>
-          <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-accent-blue/30" />
-        </motion.div>
       )}
     </div>
   );
