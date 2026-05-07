@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRef } from "react";
 import { motion, useInView, useSpring, useMotionValue, useTransform } from "framer-motion";
 import { Cpu, Rocket, Building2, GraduationCap } from "lucide-react";
@@ -140,9 +141,16 @@ export function About() {
       <div className="grid md:grid-cols-[380px_1fr] gap-12 md:gap-16">
         {/* Left: Stats */}
         <div className="md:sticky md:top-28 md:self-start">
-          {/* Avatar placeholder */}
-          <div className="w-28 h-28 mx-auto md:mx-0 rounded-full bg-gradient-to-br from-accent-blue to-accent-purple flex items-center justify-center mb-8">
-            <span className="font-display font-bold text-3xl text-white">PK</span>
+          {/* Avatar */}
+          <div className="w-28 h-28 mx-auto md:mx-0 rounded-full overflow-hidden ring-2 ring-accent-blue/20 shadow-[0_0_24px_var(--glow-accent)] mb-8">
+            <Image
+              src="/avatar.png"
+              alt="Prakhar Kothari"
+              width={112}
+              height={112}
+              className="w-full h-full object-cover object-top"
+              priority
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-2">
