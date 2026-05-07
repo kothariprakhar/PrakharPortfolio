@@ -45,12 +45,7 @@ const contacts = [
 export function Contact() {
   return (
     <SectionWrapper id="contact" className="pb-16 md:pb-24">
-      <SectionHeading
-        label="Connect"
-        title="Let's Build Together"
-        gradientWord="Together"
-        subtitle="Whether you're looking for a PM who speaks AI, or want to chat about building great products — I'd love to hear from you."
-      />
+      <SectionHeading title="Let's talk." />
 
       <div className="grid md:grid-cols-2 gap-12">
         {/* Contact info */}

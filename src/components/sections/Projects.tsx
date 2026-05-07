@@ -141,7 +141,7 @@ function ProjectCard({
 export function Projects() {
   return (
     <SectionWrapper id="projects">
-      <SectionHeading label="Projects" title="Things I've Shipped" gradientWord="Shipped" />
+      <SectionHeading label="Selected Work" title="A few things I've built." gradientWord="built" />
 
       <div className="grid md:grid-cols-3 gap-6">
         {PROJECTS.map((project, i) => (

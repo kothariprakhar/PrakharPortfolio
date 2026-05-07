@@ -136,7 +136,7 @@ function JourneyCard({
 export function About() {
   return (
     <SectionWrapper id="about">
-      <SectionHeading label="Who I Am" title="The Journey So Far" gradientWord="Journey" />
+      <SectionHeading title="The Journey So Far" gradientWord="Journey" />
 
       <div className="grid md:grid-cols-[380px_1fr] gap-12 md:gap-16">
         {/* Left: Stats */}

@@ -19,12 +19,7 @@ function formatDate(dateStr: string): string {
 export function BlogSectionClient({ posts }: { posts: BlogPostMeta[] }) {
   return (
     <SectionWrapper id="blog">
-      <SectionHeading
-        label="Thoughts"
-        title="Writing & Ideas"
-        gradientWord="Ideas"
-        subtitle="Perspectives on AI, product, and building things."
-      />
+      <SectionHeading title="Recent writing." />
 
       <div className="grid md:grid-cols-3 gap-6">
         {posts.length === 0 ? (

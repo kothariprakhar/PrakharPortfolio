@@ -130,7 +130,7 @@ function TimelineItem({
 export function Experience() {
   return (
     <SectionWrapper id="experience">
-      <SectionHeading label="Experience" title="Where I've Built" gradientWord="Built" />
+      <SectionHeading title="Where I've shipped — and what I learned doing it." />
 
       <div className="relative">
         {/* Quiet vertical timeline spine — desktop */}
