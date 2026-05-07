@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, ChevronLeft } from "lucide-react";
+import { ArrowLeft, ArrowRight, ChevronLeft, ExternalLink, Code2 } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { ScrollProgress } from "@/components/ui/ScrollProgress";
@@ -73,6 +73,34 @@ export function CaseStudyContent({
             </h1>
 
             <p className="mt-3 text-text-secondary text-lg">{project.subtitle}</p>
+
+            {/* Live / GitHub links */}
+            {"liveUrl" in project || "githubUrl" in project ? (
+              <div className="mt-5 flex items-center gap-3">
+                {"liveUrl" in project && project.liveUrl && (
+                  <a
+                    href={project.liveUrl as string}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-mono tracking-wider rounded-full bg-accent-blue/10 text-accent-blue border border-accent-blue/20 hover:bg-accent-blue/20 transition-colors"
+                  >
+                    <ExternalLink size={12} />
+                    Live Demo
+                  </a>
+                )}
+                {"githubUrl" in project && project.githubUrl && (
+                  <a
+                    href={project.githubUrl as string}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-mono tracking-wider rounded-full bg-bg-secondary text-text-secondary border border-border-subtle hover:text-accent-blue hover:border-accent-blue/30 transition-colors"
+                  >
+                    <Code2 size={12} />
+                    GitHub
+                  </a>
+                )}
+              </div>
+            ) : null}
           </motion.div>
 
           {/* Hero Metrics */}

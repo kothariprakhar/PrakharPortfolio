@@ -78,13 +78,13 @@ export const EXPERIENCE = [
   {
     id: "consultant",
     role: "Product Consultant",
-    company: "Zetwerk + 6 organizations across AI, Fintech, and EdTech",
-    companyShort: "Zetwerk + 6 others",
+    company: "Zetwerk · Confidential Fintech Client (NDA)",
+    companyShort: "Zetwerk + 1 client (NDA)",
     period: "May 2023 – May 2025",
     location: "India & UK",
     contextNote: "Contract-only by design: UK post-study visa restricted full-time employment.",
     summary:
-      "Engaged by 7 organizations including Zetwerk on AI product strategy, procurement automation, and fintech features.",
+      "Engaged by Zetwerk and a $4.5B digital bank on AI product strategy, procurement automation, and fintech features.",
     details: [
       "Zetwerk ($3B+ manufacturing marketplace): Led product strategy for AI procurement engine — delivered 32% cycle time reduction in pilot cohort, with $80M+ efficiency unlock projected at full rollout",
       "Authored PRD for multimodal AI buyer-vendor matching using B-Rep Transformer-based 3D CAD parsing; ran 30+ stakeholder interviews to define 47 decision variables",
@@ -209,6 +209,78 @@ export const PROJECTS = [
             "Domain depth > model sophistication for enterprise AI products",
             "Phased rollout by part category reduced risk and built internal confidence",
             "Defining clear fallback to human review was critical for stakeholder buy-in",
+          ],
+        },
+      ],
+    },
+  },
+  {
+    id: "codevision",
+    title: "CodeVision",
+    subtitle: "AI-Powered Codebase Intelligence Platform",
+    type: "AI" as const,
+    description:
+      "Built an AI platform that makes any GitHub codebase instantly legible — for developers onboarding to unfamiliar repos, and for non-technical stakeholders who need to verify what they've been delivered.",
+    problem: "Non-technical clients can't verify code matches requirements. Developers waste hours exploring unfamiliar codebases with no map.",
+    approach: "Designed and shipped end-to-end: smart file selection within Claude's context window, structured analysis pipeline, 6 visualization views, version diff with breaking-change detection, and an AI chat assistant grounded in live repo context.",
+    outcome: "Deployed to Northwestern University (Kellogg + McCormick). 124 commits across 5 months. Live at code-vision-inky.vercel.app.",
+    technologies: ["Claude API", "Next.js 14", "TypeScript", "Supabase", "Vitest", "Playwright"],
+    featured: true,
+    liveUrl: "https://code-vision-inky.vercel.app",
+    githubUrl: "https://github.com/kothariprakhar/CodeVision",
+    caseStudy: {
+      heroMetrics: [
+        { value: "6", label: "Analysis Views Built" },
+        { value: "124", label: "Commits Shipped" },
+        { value: "5 mo", label: "MVP to Production" },
+      ],
+      sections: [
+        {
+          heading: "The Problem",
+          content: "Two groups face the same opaque codebase problem. Developers joining a new project spend days reading source code with no high-level map of how modules connect. Non-technical stakeholders — clients, PMs, executives — who contracted a development team have no way to verify that what was delivered actually matches what they asked for, without hiring another engineer to audit the first. I built CodeVision to solve both.",
+        },
+        {
+          heading: "Product Design",
+          content: "The core design challenge was fitting the analysis of an entire repository inside Claude's context window while producing structured, actionable output — not a wall of text. I built a smart file selector that uses keyword matching and structural analysis to prioritize the most signal-dense files, then engineered a prompt pipeline that extracts a structured JSON schema: modules, data flows, tech stack, risks by severity (Critical / High / Medium / Low), and user journey steps. This JSON then powers six distinct visualization views, each designed for a specific audience.",
+          bullets: [
+            "Architecture Diagram: 5–12 high-level, business-named module cards with type indicators (UI, API, service, database, external)",
+            "User Flow View: how real users move through the product, with friction points surfaced",
+            "Tech Stack Dashboard: languages, frameworks, dependencies at a glance",
+            "Risk Panel: delivery and reliability risks with estimated remediation effort",
+            "Version Diff: branch/PR/commit-aware diff with breaking-change alerts and stakeholder-facing narratives",
+            "AI Chat: Q&A assistant with live repo context baked in for grounded answers",
+          ],
+        },
+        {
+          heading: "Technical Architecture",
+          content: "I built the full stack: Next.js 14 App Router, TypeScript, Supabase (migrated from SQLite), JWT auth in HttpOnly cookies, async job processing with WebSocket status updates, and a 19-service pipeline covering ingestion, analysis, chunking, diffing, narrative generation, and export. Analysis is async — users see real-time progress via WebSocket, and results are persisted for re-viewing without re-running. Tests cover unit (Vitest) and E2E (Playwright).",
+        },
+        {
+          heading: "Go-to-Market: University Distribution",
+          content: "Rather than launching publicly and fighting for attention, I designed access controls for a high-value, captive audience: Northwestern University students and faculty (@northwestern.edu and @kellogg.northwestern.edu). This gave CodeVision real users with genuine pain — MBA students reviewing technical deliverables from engineering classmates, CS students onboarding to group project repos — without requiring any marketing spend. A waitlist form captures external demand for future expansion.",
+        },
+        {
+          heading: "Version Diff: The Flagship Feature",
+          content: "The most complex feature, shipped in April 2026, was version-aware diffing. Given a branch, PR, or commit, CodeVision detects breaking changes, generates a capability-change summary, a user journey storyboard (how the product experience changed), and a ship-readiness verdict. This directly serves the non-technical stakeholder use case: a client can see exactly what changed between deliverable v1 and v2 in plain English, without reading a git diff.",
+        },
+        {
+          heading: "Results",
+          content: "CodeVision is live in production at Northwestern University. 124 commits were shipped across 5 months with two collaborators, driven by 17 phased design documents in a /docs/plans directory that mirrors how I run professional product work — PRDs first, then engineering.",
+          metrics: [
+            { value: "19", label: "Service modules in analysis pipeline" },
+            { value: "124", label: "Commits shipped" },
+            { value: "17", label: "Product design docs (PRDs)" },
+            { value: "6", label: "Visualization views for different stakeholders" },
+          ],
+        },
+        {
+          heading: "Key Learnings",
+          content: "The hardest part wasn't the LLM integration — it was the UX of structured uncertainty. When Claude isn't confident about a module's purpose, the UI needs to communicate that gracefully rather than hallucinating confidence. I built confidence indicators into every card and made 'I don't know' a first-class state.",
+          bullets: [
+            "Structured JSON extraction from LLMs is the hardest part of any AI product to make robust",
+            "Design for the non-technical audience first — if they can read it, engineers definitely can",
+            "Async with real-time progress is table stakes for any AI feature with >5s latency",
+            "University-gated distribution created a focused early user base with genuine pain",
           ],
         },
       ],
