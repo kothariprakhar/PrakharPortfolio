@@ -1,10 +1,7 @@
 export const NAV_LINKS = [
+  { label: "Work", href: "#projects" },
+  { label: "Writing", href: "/blog" },
   { label: "About", href: "#about" },
-  { label: "Experience", href: "#experience" },
-  { label: "Projects", href: "#projects" },
-  { label: "Skills", href: "#skills" },
-  { label: "Blog", href: "/blog" },
-  { label: "Contact", href: "#contact" },
 ] as const;
 
 export const SOCIAL_LINKS = {
@@ -471,41 +468,3 @@ export const PROJECTS = [
   },
 ];
 
-export const SKILLS = {
-  "Product Management": [
-    { name: "Product Strategy", icon: "Target" },
-    { name: "User Research", icon: "Users" },
-    { name: "A/B Testing", icon: "FlaskConical" },
-    { name: "Roadmapping", icon: "Map" },
-    { name: "PRDs & Specs", icon: "FileText" },
-    { name: "Go-to-Market", icon: "Megaphone" },
-    { name: "Agile / Scrum", icon: "IterationCw" },
-    { name: "Stakeholder Mgmt", icon: "Handshake" },
-  ],
-  "AI / ML": [
-    { name: "RAG Systems", icon: "Database" },
-    { name: "NLP", icon: "MessageSquare" },
-    { name: "Computer Vision", icon: "Eye" },
-    { name: "LLM Prompting", icon: "Sparkles" },
-    { name: "Deep Learning", icon: "Brain" },
-    { name: "Data Analysis", icon: "BarChart3" },
-  ],
-  Engineering: [
-    { name: "Python", icon: "Code" },
-    { name: "TypeScript", icon: "Code" },
-    { name: "React / Next.js", icon: "Code" },
-    { name: "Node.js", icon: "Server" },
-    { name: "SQL", icon: "Database" },
-    { name: "Docker", icon: "Container" },
-    { name: "AWS", icon: "Cloud" },
-    { name: "REST APIs", icon: "Plug" },
-  ],
-  "Tools & Platforms": [
-    { name: "Figma", icon: "Palette" },
-    { name: "Jira", icon: "KanbanSquare" },
-    { name: "Notion", icon: "BookOpen" },
-    { name: "Mixpanel", icon: "BarChart3" },
-    { name: "Tableau", icon: "PieChart" },
-    { name: "Git", icon: "GitBranch" },
-  ],
-} as const;
