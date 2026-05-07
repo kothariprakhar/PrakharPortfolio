@@ -78,15 +78,12 @@ export function Hero() {
         <motion.div
           variants={itemVariants}
           style={{ y: buttonsY }}
-          className="mt-8 md:mt-10 flex flex-col sm:flex-row gap-4 justify-center md:justify-start"
+          className="mt-8 md:mt-10 flex flex-col sm:flex-row gap-3 justify-center md:justify-start"
         >
           <MagneticButton
             as="a"
             href="#projects"
-            warpId="hero-cta-primary"
-            warpStrength={25}
-            warpRadius={180}
-            className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full bg-gradient-to-r from-accent-blue to-accent-purple text-white font-medium text-sm hover:shadow-[0_0_30px_var(--glow-accent)] transition-shadow duration-300"
+            className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full bg-accent-blue text-white font-medium text-sm hover:bg-accent-purple transition-colors duration-200"
           >
             View My Work
             <span className="ml-1">&rarr;</span>
@@ -94,23 +91,10 @@ export function Hero() {
           <MagneticButton
             as="a"
             href={SOCIAL_LINKS.resume}
-            warpId="hero-cta-resume"
-            warpStrength={20}
-            warpRadius={150}
-            className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full border border-accent-blue/40 text-accent-blue font-medium text-sm hover:bg-accent-blue/10 transition-all duration-300"
+            className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full border border-accent-blue/30 text-accent-blue font-medium text-sm hover:border-accent-blue hover:bg-accent-blue/5 transition-colors duration-200"
           >
             <Download size={16} />
             Resume
-          </MagneticButton>
-          <MagneticButton
-            as="a"
-            href="#contact"
-            warpId="hero-cta-secondary"
-            warpStrength={20}
-            warpRadius={150}
-            className="inline-flex items-center justify-center px-8 py-3.5 rounded-full text-text-secondary hover:text-text-primary font-medium text-sm transition-all duration-300"
-          >
-            Get In Touch
           </MagneticButton>
         </motion.div>
 

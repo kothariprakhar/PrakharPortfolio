@@ -83,12 +83,6 @@ body {
   box-shadow: 0 4px 16px rgba(26, 24, 21, 0.06);
 }
 
-/* ── Custom cursor: hide native cursor on fine pointer devices ── */
-@media (pointer: fine) {
-  * { cursor: none !important; }
-  input, textarea, select { cursor: text !important; }
-}
-
 /* ── Reduced motion: respect OS preference ── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

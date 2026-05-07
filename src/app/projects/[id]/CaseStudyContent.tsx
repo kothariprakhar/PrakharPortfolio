@@ -6,7 +6,6 @@ import { ArrowLeft, ArrowRight, ChevronLeft, ExternalLink, Code2 } from "lucide-
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { ScrollProgress } from "@/components/ui/ScrollProgress";
-import { CustomCursor } from "@/components/ui/CustomCursor";
 import type { PROJECTS } from "@/lib/constants";
 
 type Project = (typeof PROJECTS)[number];
@@ -35,7 +34,6 @@ export function CaseStudyContent({
 
   return (
     <>
-      <CustomCursor />
       <ScrollProgress />
       <Navbar />
 

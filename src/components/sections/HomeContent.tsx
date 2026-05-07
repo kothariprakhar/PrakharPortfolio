@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useCallback } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Hero } from "@/components/sections/Hero";
 import { About } from "@/components/sections/About";
@@ -10,20 +9,10 @@ import { Skills } from "@/components/sections/Skills";
 import { Contact } from "@/components/sections/Contact";
 import { Footer } from "@/components/layout/Footer";
 import { ScrollProgress } from "@/components/ui/ScrollProgress";
-import { LoadingScreen } from "@/components/ui/LoadingScreen";
-import { CustomCursor } from "@/components/ui/CustomCursor";
 
 export function HomeContent({ blogSection }: { blogSection: React.ReactNode }) {
-  const [loaded, setLoaded] = useState(
-    typeof window !== "undefined" && sessionStorage.getItem("pk-loaded") === "1"
-  );
-
-  const handleLoadComplete = useCallback(() => setLoaded(true), []);
-
   return (
     <>
-      {!loaded && <LoadingScreen onComplete={handleLoadComplete} />}
-      <CustomCursor />
       <ScrollProgress />
       <Navbar />
       <main className="relative z-10">
