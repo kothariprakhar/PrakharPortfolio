@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft, Calendar, Clock } from "lucide-react";
-import type { BlogPost } from "@/lib/blog";
+import type { BlogPost } from "@/lib/blog-shared";
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("en-US", {

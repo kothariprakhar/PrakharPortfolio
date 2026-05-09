@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Calendar, Clock, ArrowUpRight } from "lucide-react";
-import type { BlogPostMeta } from "@/lib/blog";
-import { estimateReadingTime } from "@/lib/blog";
+import type { BlogPostMeta } from "@/lib/blog-shared";
+import { estimateReadingTime } from "@/lib/blog-shared";
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("en-US", {

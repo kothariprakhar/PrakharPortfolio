@@ -5,8 +5,8 @@ import { motion } from "framer-motion";
 import { ArrowRight, Calendar, Clock, ArrowUpRight } from "lucide-react";
 import { SectionWrapper } from "@/components/layout/SectionWrapper";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import type { BlogPostMeta } from "@/lib/blog";
-import { estimateReadingTime } from "@/lib/blog";
+import type { BlogPostMeta } from "@/lib/blog-shared";
+import { estimateReadingTime } from "@/lib/blog-shared";
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("en-US", {
