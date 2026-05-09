@@ -29,32 +29,23 @@ export function BlogCard({
     >
       <Link href={`/blog/${post.slug}`} className="group block">
         <div className="glass-card overflow-hidden transition-all duration-300">
-          <div className="relative h-40 bg-bg-tertiary overflow-hidden">
-            {post.cover_image ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={post.cover_image}
-                alt=""
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-            ) : (
-              <div
-                className="absolute inset-0 opacity-50"
-                style={{
-                  background:
-                    "linear-gradient(135deg, var(--color-glow-blue), var(--color-glow-purple), var(--color-glow-blue))",
-                  animation: "gradientShift 8s ease-in-out infinite",
-                  backgroundSize: "200% 200%",
-                }}
-              />
-            )}
-            <div className="absolute top-4 right-4">
-              <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-bg-primary/85 backdrop-blur-sm text-[10px] font-mono tracking-wider text-text-muted border border-border-subtle">
+          <div className="relative h-24 bg-gradient-to-br from-accent-blue/10 via-accent-purple/10 to-accent-magenta/10 overflow-hidden">
+            <div
+              className="absolute inset-0 opacity-50"
+              style={{
+                background:
+                  "linear-gradient(135deg, var(--color-glow-blue), var(--color-glow-purple), var(--color-glow-blue))",
+                animation: "gradientShift 8s ease-in-out infinite",
+                backgroundSize: "200% 200%",
+              }}
+            />
+            <div className="absolute top-3 right-3">
+              <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-bg-primary/80 backdrop-blur-sm text-[10px] font-mono tracking-wider text-text-muted border border-border-subtle">
                 <Clock size={10} />
                 {post.reading_time}
               </span>
             </div>
-            <div className="absolute bottom-4 left-4 flex items-center gap-1.5 text-[10px] font-mono text-text-muted px-2 py-1 rounded bg-bg-primary/85 backdrop-blur-sm">
+            <div className="absolute bottom-3 left-3 flex items-center gap-1.5 text-[10px] font-mono text-text-muted">
               <Calendar size={10} />
               {formatDate(post.created_at)}
             </div>
