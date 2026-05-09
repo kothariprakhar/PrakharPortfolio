@@ -61,10 +61,40 @@ const mdxComponents = {
   },
   pre: (props: React.ComponentProps<"pre">) => (
     <pre
-      className="bg-bg-secondary border border-border-subtle rounded-xl p-4 my-6 overflow-x-auto text-sm font-mono"
+      className="bg-bg-secondary border border-border-subtle rounded-xl p-4 my-6 overflow-x-auto text-sm font-mono leading-relaxed"
       {...props}
     />
   ),
+  img: (props: React.ComponentProps<"img">) => (
+    // Disable next/image rules — these are static MDX figures, not LCP-critical hero images.
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      {...props}
+      alt={props.alt ?? ""}
+      className="block w-full h-auto rounded-lg border border-border-subtle my-8 bg-bg-secondary"
+    />
+  ),
+  table: (props: React.ComponentProps<"table">) => (
+    <div className="my-8 -mx-2 overflow-x-auto">
+      <table
+        className="w-full text-sm border-collapse"
+        {...props}
+      />
+    </div>
+  ),
+  thead: (props: React.ComponentProps<"thead">) => (
+    <thead className="border-b border-border-subtle" {...props} />
+  ),
+  th: (props: React.ComponentProps<"th">) => (
+    <th
+      className="px-3 py-2 text-left font-mono text-xs tracking-wider text-text-muted uppercase font-medium"
+      {...props}
+    />
+  ),
+  td: (props: React.ComponentProps<"td">) => (
+    <td className="px-3 py-2 text-text-secondary border-b border-border-subtle/50" {...props} />
+  ),
+  tr: (props: React.ComponentProps<"tr">) => <tr {...props} />,
 };
 
 export async function MDXContent({ source }: { source: string }) {

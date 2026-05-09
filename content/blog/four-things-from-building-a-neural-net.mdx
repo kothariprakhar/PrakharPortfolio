@@ -1,103 +1,273 @@
 ---
-title: "Four things I only understood after building a neural net by hand"
-excerpt: "An MS-AI assignment forced me to write backprop in NumPy. The exercise turned four pieces of received wisdom into actual instincts."
+title: "A tiny neural network and four experiments I ran on it"
+excerpt: "Two layers, four 2D toy datasets, a stack of loss functions, and a NumPy reimplementation. Here is what changed in my head about backprop."
 date: "2026-02-01"
-tags: ["AI / ML", "Deep Learning", "Coursework"]
+tags: ["AI / ML", "Deep Learning", "Backpropagation", "PyTorch", "NumPy"]
 published: true
 ---
 
-There is a moment, early in any deep-learning class, when the professor says something like: "for this assignment, please do not use a framework." The room sighs. We have all written `model.fit(x, y)` enough times to feel that the from-scratch exercise is an academic ritual, not a useful one. Frameworks exist for a reason. The wheel does not need to be reinvented in NumPy.
+I have used `model.fit(x, y)` more times than I can count. Most of the time it works. Sometimes the loss does not go down and I poke at the learning rate or the architecture or the data until it does. The poking has been pattern matching more than understanding. So one weekend I decided to actually slow down and build a tiny neural network from scratch, then run a few experiments on it that I knew would teach me something I had been nodding along to for years.
 
-I started Northwestern's Intro to AI sequence with that exact sigh. Then I did the assignment, and four things I had been nodding along to for years became actual instincts.
+The system is small on purpose. Two input features, one hidden layer, two output classes. Four little 2D datasets to train on. The whole thing fits on one screen. The point is not the model. The point is being able to watch every choice we make show up as a visible change in the output, instead of disappearing into a framework abstraction.
 
-This post is the writeup. It covers Homework 1 from the MS-AI program: a small two-layer MLP, four 2D datasets (two_gaussians, xor, center_surround, spiral), and four questions that walked us through capacity, loss functions, manual backprop, and regularization. The point is not the assignment. The point is the four ideas that became visible only when the framework got out of the way.
+Four experiments came out of this:
 
-## The setup, in one paragraph
+1. How big does the hidden layer need to be, and what changes when we get it wrong?
+2. What actually happens if we use MSE loss for binary classification instead of cross-entropy?
+3. Can we reproduce the whole pipeline in raw NumPy, with backprop derived by hand?
+4. What if we add a regularization term that pushes the hidden units to learn different features?
 
-We were given four toy datasets. Each has two input features (x1, x2) and a binary label. They look like what they sound like: two_gaussians is two blobs we can split with a line, xor is the classic four-quadrant problem, center_surround is a circle inside another, and spiral is two interleaved arms that no single straight line will ever separate. The job was to train a small multi-layer perceptron (one hidden layer, k hidden units, tanh activation) on each dataset and analyze what happened. Across the four sub-problems we changed the loss, swapped frameworks for raw NumPy, and finally added a regularizer. Simple on paper. Surprisingly load-bearing in practice.
+Each one taught me something I now find myself using when I read papers or talk to ML engineers. This post walks through all four with the actual code I wrote, the actual outputs I saw, and the parts of the math that became permanent only after I watched them on screen.
 
-## 1. Capacity has to match the data, and there is no universal answer
+## The setup
 
-The first decision is k, the number of hidden units. The textbook framing is "small k underfits, large k overfits, find the sweet spot." Fine in the abstract. Annoying when we actually have to pick a number.
+Before the experiments, the chassis. The model is a 2-layer multi-layer perceptron with `k` hidden units, tanh activation, and a softmax (or sigmoid, in one experiment) output. In PyTorch that is three lines:
 
-For two_gaussians, k = 2 gave the lowest validation loss. The dataset is essentially linearly separable, so two hidden units have plenty of capacity. Larger k did not help and slightly hurt: the validation loss ticked up as the network started memorizing noise.
-
-The spiral dataset told the opposite story. With k = 2 or 3, the network could not bend the decision boundary enough to follow the spiral arms. It gave up around 60 percent accuracy, which is barely better than chance for a balanced binary problem. The validation loss plateaued early and stayed there. No amount of training rescues a model that does not have the geometric capacity to separate the data.
-
-I settled on k = 9 as the value that worked across all four datasets. Not because nine is magic. Because nine was the smallest number where validation loss stopped improving when I increased k. That is the actual rule, written down: capacity should be the smallest value that no longer underfits, judged on a held-out validation set. Bigger than that is just spending parameters to memorize.
-
-There is a subtler thing here too. Once we have a sense of what each dataset needs geometrically, we stop arguing about hidden-layer size in the abstract. The conversation becomes "the data has a spiral structure, we need at least enough hidden units to bend a line into a spiral, and that bound is empirical." That is a different conversation from "what is the right k." It is the conversation an actual ML engineer has, and it is the one I could not have before I watched k = 2 give up on the spiral.
-
-## 2. The loss function is not just about correctness, it is about the gradients
-
-Question 2 was the one I expected to be a formality. Replace cross-entropy with MSE for a binary classification problem. They are both reasonable choices. The output is a sigmoid in (0, 1). The target is 0 or 1. We square the difference. Done.
-
-The model trained. It got similar accuracy to the cross-entropy version. But it took close to 2000 epochs to get there, where cross-entropy converged comfortably in 500. Same architecture, same data, same optimizer. Four times the epochs.
-
-The reason is not subtle once we write the gradient out. With MSE on a sigmoid output, the gradient of the loss with respect to the pre-activation is:
-
-```
-∂L/∂z = (sigmoid(z) - target) * sigmoid'(z)
+```python
+model = nn.Sequential(
+    nn.Linear(2, k),
+    nn.Tanh(),
+    nn.Linear(k, 2),
+)
 ```
 
-That second term, `sigmoid'(z)`, is `sigmoid(z) * (1 - sigmoid(z))`. When the sigmoid output is close to 0 or 1, that derivative is close to 0. So the gradient signal collapses exactly when the model is confidently wrong. The optimizer wants to push hard on a confidently-wrong example, and the math hands it back almost nothing.
+The four datasets are 2D scatter problems with binary labels: `two_gaussians` (linearly separable, two blobs), `xor` (the classic four-quadrant problem), `center_surround` (one circle inside another), and `spiral` (two interleaved arms). They were chosen to span a range of geometric difficulty. A logistic regression solves the first one. The last one needs an actual nonlinear decision boundary.
 
-Cross-entropy paired with sigmoid (or softmax in the multi-class case) does not have this problem. The `sigmoid'(z)` term cancels out cleanly when we differentiate cross-entropy through the sigmoid, leaving just `(sigmoid(z) - target)`. The gradient stays proportional to the error, regardless of how saturated the output is. We get a strong push when we are wrong.
+I trained on each dataset with vanilla SGD at learning rate 0.5, normalized the features using training-set statistics, and used a held-out validation split with early stopping (patience 50) to pick the best checkpoint. Standard hygiene. Nothing fancy. The interest is in what changes when we vary the things we are about to vary.
 
-That is the whole story behind the convention "use cross-entropy for classification, MSE for regression." It is not a stylistic preference. It is a statement about which loss function plays nicely with which output activation. MSE on a sigmoid output is mathematically valid and practically slow. We can drag it across the finish line with more epochs, but we are fighting our own setup.
+## Experiment 1: how big should the hidden layer be?
 
-I had nodded along to this rule for years. Watching the loss curves diverge made it permanent.
+The textbook answer is "small enough not to overfit, large enough not to underfit, find the sweet spot on validation." Fine. But what does that actually look like when we have to pick a number?
 
-## 3. Softmax and cross-entropy together are one of ML's quiet beauties
+I swept `k` over `[2, 3, 5, 7, 9]` for each dataset and recorded the lowest validation loss reached:
 
-Question 3 was the one I dreaded. Reimplement Question 1 without PyTorch. Forward pass, backward pass, parameter updates, all by hand in NumPy. The professor allowed PyTorch only for weight initialization, presumably out of mercy.
+| Dataset           | k=2     | k=3     | k=5     | k=7     | k=9     | Winner    |
+|-------------------|---------|---------|---------|---------|---------|-----------|
+| `two_gaussians`   | 0.0841  | 0.0834  | 0.0817  | 0.0836  | 0.0805  | k=9 (tie) |
+| `xor`             | 0.6954  | 0.3134  | 0.1490  | 0.1215  | 0.1155  | k=9       |
+| `center_surround` | 0.3295  | 0.1206  | 0.1138  | 0.1097  | 0.1098  | k=7       |
+| `spiral`          | 0.4446  | 0.2050  | 0.1145  | 0.0776  | 0.0683  | k=9       |
 
-The forward pass is unremarkable. Multiply, add bias, apply tanh, multiply, add bias, apply softmax. The interesting part is the backward pass through softmax-then-cross-entropy.
+Two things jump out. First, on `two_gaussians`, all five values are basically the same. The dataset is linearly separable, so two hidden units have plenty of capacity. Adding seven more does not help, because there is nothing left to learn. This is a useful negative result: bigger is not better when the data does not need it.
 
-If we differentiate carefully, separately, both functions are unpleasant. Softmax has a Jacobian where each output depends on every input (because of the normalizing denominator). Cross-entropy has a sum over classes with logarithms inside it. The chain rule between them produces a wall of subscripts that is genuinely hard to keep straight.
+Second, on `xor`, going from k=2 to k=3 cuts the loss in half. From k=3 to k=5 it cuts in half again. After that, gains taper. This is the shape of a model finally having enough capacity to bend the decision boundary. Until k=3, the network literally cannot represent the XOR function with two hidden tanh units. With k=3 it can, just barely. With k=5 it can do so comfortably.
 
-But when we compose them, almost everything cancels. The gradient of the cross-entropy loss with respect to the pre-softmax logits `z` collapses to:
+The spiral story is the most dramatic. With k=2 it gives up: 60 percent accuracy is barely better than chance for a balanced binary problem. The decision boundary cannot bend enough. By k=9 it is nailing the test set perfectly:
+
+![Decision boundary on the spiral dataset with k=9 hidden units, achieving 100% test accuracy](/blog/hw1/Q1_cell0_out11.png)
+
+The relevant code is the inner part of the training loop, which is just SGD with early stopping:
+
+```python
+for epoch in range(1000):
+    model.train()
+    optimizer.zero_grad()
+    loss = criterion(model(train_features), train_targets)
+    loss.backward()
+    optimizer.step()
+
+    model.eval()
+    with torch.no_grad():
+        val_loss = criterion(model(val_features), val_targets)
+
+    if val_loss < min_val_loss:
+        min_val_loss = val_loss
+        best_state = model.state_dict().copy()
+        patience_counter = 0
+    else:
+        patience_counter += 1
+
+    if patience_counter >= 50:
+        break
+```
+
+I settled on `k=9` as the value that worked across all four datasets. Not because nine is magic, but because nine was the smallest number where additional capacity stopped lowering validation loss. That is the actual rule, written down: pick the smallest hidden width that no longer underfits, judged on a held-out set. Anything bigger is paying for parameters we are not using.
+
+The deeper instinct that came out of this is that we should stop talking about "the right hidden layer size" in the abstract. The right size is a function of the dataset's geometric complexity, and it is empirical. The conversation worth having is "how curvy does the decision boundary need to be," not "is k=64 enough." The first one has an answer. The second one does not.
+
+## Experiment 2: what if we use MSE instead of cross-entropy?
+
+The convention is to use cross-entropy for classification and MSE for regression. I knew the convention. I had never tested what happens when we ignore it.
+
+For experiment 2, I kept everything the same as experiment 1 but swapped the loss. The output layer goes from a 2-unit softmax to a 1-unit sigmoid (predictions in 0 to 1, treated as a regression target):
+
+```python
+model = nn.Sequential(
+    nn.Linear(2, k),
+    nn.Tanh(),
+    nn.Linear(k, 1),
+    nn.Sigmoid(),     # output in (0, 1)
+)
+optimizer = optim.SGD(model.parameters(), lr=0.5)
+criterion = nn.MSELoss()
+```
+
+The targets become floats (0.0 or 1.0). The training loop is the same. The accuracy at the end of training is the same, give or take a percent.
+
+The thing that is not the same is the number of epochs we need to get there. Cross-entropy from experiment 1 was happy with 1000 epochs and patience 50. MSE needed me to bump those to 2000 epochs and patience 100, otherwise it would early-stop before it had really converged.
+
+The reason is not subtle once we work through the gradient. With MSE on a sigmoid output, the gradient of the loss with respect to the pre-activation `z` is:
+
+```
+∂L/∂z = (σ(z) - t) · σ'(z)
+       = (σ(z) - t) · σ(z) · (1 - σ(z))
+```
+
+The first factor is the error: how far off our prediction is from the target. The second factor, `σ'(z) = σ(z)(1 - σ(z))`, is the derivative of the sigmoid. And here is the issue. When `σ(z)` is close to 0 or 1, that derivative is close to zero. So when the model is confidently wrong (`σ(z) = 0.99` for a target of 0, say), the gradient signal collapses. The optimizer wants to push hard. The math hands it back almost nothing. Training crawls.
+
+Cross-entropy paired with sigmoid does not have this problem. The gradient of the binary cross-entropy loss `L = -t log σ(z) - (1 - t) log(1 - σ(z))` with respect to `z` works out to:
+
+```
+∂L/∂z = σ(z) - t
+```
+
+The `σ'(z)` factor that hurts us in the MSE case cancels out cleanly. We are left with just the prediction-minus-target error. The signal stays strong even when the model is saturated. We get a strong push when we are wrong, regardless of how confidently wrong we were.
+
+That cancellation is the entire reason for the convention. It is not a stylistic preference. It is not "cross-entropy is more theoretically motivated for classification" (though that is also true). It is a statement about how the loss interacts with the activation, and which combination keeps gradients flowing. MSE on a sigmoid output is mathematically valid. It is also practically slow.
+
+I had read this exact paragraph in textbooks. Watching the loss curves diverge, with MSE plateauing while cross-entropy was already converged, made it permanent.
+
+## Experiment 3: building the whole thing in NumPy
+
+Experiment 3 was the one I was avoiding. The professor in me knew it was the most useful exercise. The engineer in me knew how unpleasant it would be. I wrote it anyway.
+
+The forward pass is unremarkable. Linear, tanh, linear, softmax:
+
+```python
+def compute_softmax(z):
+    # Numerical stability: shift by max before exp
+    z_shifted = z - np.max(z, axis=1, keepdims=True)
+    exp_z = np.exp(z_shifted)
+    return exp_z / np.sum(exp_z, axis=1, keepdims=True)
+
+def forward(x, W1, b1, W2, b2):
+    z1 = x @ W1 + b1          # pre-activation, layer 1
+    h  = np.tanh(z1)          # hidden activation
+    z2 = h @ W2 + b2          # pre-activation, layer 2
+    y  = compute_softmax(z2)  # output probabilities
+    return y, h, z1
+```
+
+The interesting part is the backward pass through softmax-then-cross-entropy. If we differentiate them separately, both are unpleasant. Softmax has a Jacobian where each output depends on every input (because of the normalizing denominator across classes). Cross-entropy has a sum over classes with logarithms inside it. The chain rule between them produces a wall of subscripts that is genuinely hard to keep straight.
+
+Compose them, though, and almost everything cancels.
+
+The cross-entropy loss for one example with one-hot target `t` and predicted probability vector `y = softmax(z)` is:
+
+```
+L = -Σᵢ tᵢ log yᵢ
+```
+
+The gradient of `L` with respect to the pre-softmax logits `z` is:
 
 ```
 ∂L/∂z = y - t
 ```
 
-where `y` is the predicted probability vector and `t` is the one-hot target. That is it. Predicted minus actual. The same form as the gradient of MSE with linear output, which is part of what makes it feel almost suspicious the first time.
+That is it. Predicted probabilities minus the one-hot target. Same shape as `z`. No Jacobians. No leftover terms. (The full derivation needs about a page of careful index work, then the cross-terms collapse.)
 
-This is not an accident. It is the reason every deep-learning framework ships a single op called something like `softmax_cross_entropy_with_logits`. They are not just bundled for convenience. They are bundled because the gradient is simpler when we treat them as a unit, and computing them separately is both slower and numerically less stable.
+Once we have `∂L/∂z`, the rest of backprop is straightforward chain rule:
 
-There is a small product-management lesson tucked into this. The framework's API surface (one function instead of two) is not arbitrary. It encodes a piece of mathematical structure. When we use the bundled version, we are not just saving a line of code. We are using a more numerically stable expression of the same idea. APIs that look like they were merged for convenience sometimes have real reasons underneath. It is worth asking why.
+```python
+def backward(x, target_onehot, y, h, W2):
+    n = x.shape[0]
+    # The clean cancellation: ∂L/∂z2 = (y - t) / batch_size
+    dz2 = (y - target_onehot) / n
 
-I would not have known that without the by-hand derivation. I would have used `softmax_cross_entropy_with_logits` because the documentation said to, and I would have been right, but I would not have known why.
+    dW2 = h.T @ dz2
+    db2 = np.sum(dz2, axis=0)
 
-## 4. Regularization is a dial, not a switch
+    # Backprop through tanh: derivative is (1 - h^2)
+    dz1 = (dz2 @ W2.T) * (1 - h ** 2)
+    dW1 = x.T @ dz1
+    db1 = np.sum(dz1, axis=0)
 
-Question 4 added an orthogonality penalty to the first layer's weights. The idea is to discourage the hidden units from learning redundant features by penalizing the off-diagonal entries of the Gram matrix `W W^T`. The full loss becomes the usual cross-entropy plus `λ` times the regularization term, and `λ` controls how much we care about orthogonality versus accuracy.
+    return dW1, db1, dW2, db2
+```
 
-The first thing I learned is that `λ = 1` was a disaster. On the spiral dataset with k = 3, the model could not bend the decision boundary to fit the data. The regularizer dominated the gradient signal. The hidden units stayed almost orthogonal, but they were also almost useless. Accuracy collapsed to roughly 60 percent.
+To check that the manual gradients match what PyTorch's autograd would compute, I ran the same input through both:
 
-`λ = 0.01` worked beautifully. Same architecture, same dataset, same optimizer. Just a hundredth of the regularization strength. The model fit the spiral, and the orthogonality term gently discouraged the hidden units from collapsing onto each other.
+```python
+# Run a small batch through PyTorch
+x_torch = torch.tensor(x_scaled[:10], dtype=torch.float32)
+y_torch = torch.tensor(y_raw[:10], dtype=torch.long)
+torch.nn.CrossEntropyLoss()(ref_net(x_torch), y_torch).backward()
 
-The order-of-magnitude difference is the lesson. Regularization is not a switch we flip on or off. The strength matters, and the right strength is empirical and dataset-specific. The spiral needed a very light touch because it has a complex geometry that the model needs most of its capacity to capture. A simpler dataset would tolerate (and benefit from) a heavier regularizer.
+# Same batch through my NumPy code
+preds, hidden, _ = forward(x_scaled[:10], W1, b1, W2, b2)
+dW1_manual, _, _, _ = backward(x_scaled[:10], one_hot[:10], preds, hidden, W2)
 
-This generalizes well beyond orthogonality penalties. Weight decay, dropout rate, label smoothing, every regularizer has a sweet spot, and finding it is part of the work, not an afterthought. It is also the kind of thing that almost never makes it into research papers. Authors report the value they used. They rarely walk through the failure modes at adjacent values, which is where the intuition actually lives.
+# Maximum elementwise difference
+diff = np.abs(dW1_manual.T - ref_net[0].weight.grad.numpy()).max()
+print(f"Grad check: max difference = {diff:.2e}")
+# Grad check: max difference = 5.96e-08
+```
 
-## What this is really about
+A difference of `5.96e-08` is just floating-point noise. The math is the same.
 
-The four notebooks were instrumental in changing how I read ML papers. Before the assignment, when a paper said "we use cross-entropy loss" or "we add an L2 penalty with weight 1e-4," those were just facts to absorb. After the assignment, every choice has a reason, and I now find myself asking why a paper picked one over the other.
+I trained this from-scratch implementation on all four datasets and got accuracies that matched the PyTorch version of experiment 1 to within a percentage point: 91.5 percent on `two_gaussians`, 97.5 on `xor`, 75.5 on `center_surround`, and 100 on `spiral`. The decision boundary on the spiral, drawn from probabilities that came out of my own backprop, looked like this:
 
-That is what `model.fit()` hides. Not the ability to train a model. We can train a model fine. What it hides is the sense that the choices we make at every step (loss function, capacity, regularization strength) have visible consequences we can see and reason about. Without the from-scratch exercise, those choices are options on a dropdown menu. With it, they are levers connected to specific behaviors we can predict.
+![Decision boundary on the spiral dataset, trained with my NumPy implementation](/blog/hw1/Q3_cell0_out7.png)
 
-I am an AI product manager, not an ML researcher. Most of my day is not differentiating softmax through cross-entropy. But when an ML engineer tells me "the loss is not converging" or "we need more capacity for this problem," I am no longer trusting their judgment from a position of ignorance. I am trusting it from a position of having watched, in tiny scale, what those words actually look like.
+There is a small product lesson tucked into all of this. PyTorch ships a single op called `torch.nn.functional.cross_entropy` that takes raw logits (skipping softmax entirely) and computes the loss in one numerically stable expression. It is not bundled for convenience. It is bundled because the gradient is cleaner when we treat softmax and cross-entropy as a unit, and because computing them separately is both slower and prone to overflow when logits are large. APIs that look merged for taste sometimes have real reasons underneath. The way we figure out which is which is by deriving them.
 
-That, more than the grade, is what the assignment was for.
+The other lesson is more practical. There is a specific kind of confidence I now have when I read a paper that says "we use cross-entropy loss with softmax output." Before this exercise, that sentence was a fact to absorb. After this exercise, that sentence describes a choice with mathematical structure I have personally verified. The two confidences feel completely different.
 
-## Three things to be able to say in plain language after this
+## Experiment 4: a regularization term that pushes the model harder
 
-1. Hidden-layer size should be the smallest value that no longer underfits on a held-out set. Numbers larger than that are spending parameters to memorize.
-2. Cross-entropy paired with sigmoid or softmax is the right default for classification because the output activation's derivative cancels out, leaving a strong gradient signal proportional to the error.
-3. Regularization strength is not a binary toggle. Order-of-magnitude differences in `λ` produce qualitatively different models on the same dataset.
+The first three experiments were about the basic mechanics. Experiment 4 was the one I was actually curious about. What happens if we deliberately constrain the network in a useful way, by adding a term to the loss that says "your hidden units should learn different features from each other"?
 
-## What I am writing next
+The standard tool is an orthogonality penalty. We take the first-layer weight matrix `W` (one row per hidden unit), compute `W Wᵀ` (a Gram matrix of inner products between rows), and penalize the off-diagonal entries. A perfectly orthogonal weight matrix has a diagonal Gram matrix. Anything off-diagonal is two hidden units pointing in similar directions, which is wasted capacity.
 
-This is the first of four posts based on the MS-AI coursework. The next one walks through Homework 2: a convolutional autoencoder on an emoji dataset. The interesting part is what we learn about latent spaces when the reconstruction is too good or too bad.
+```python
+def compute_ortho_penalty(net):
+    W = net[0].weight                 # (hidden_units, input_dim)
+    gram = W @ W.t()                  # pairwise inner products
+    diag = torch.diag(torch.diag(gram))
+    off_diagonal = gram - diag
+    return torch.sum(off_diagonal ** 2)
+```
+
+We add this to the standard loss with a weight `λ`:
+
+```python
+total_loss = ce_loss(predictions, targets) + λ * compute_ortho_penalty(model)
+```
+
+I ran the spiral dataset with `k=3` (small capacity, on purpose, so the regularizer has something to fight over) and tried two values of λ.
+
+With `λ = 1`, the regularizer dominated the gradient. The hidden units stayed almost orthogonal, which is what we asked for. They were also almost useless, because the cross-entropy term could not move them toward solving the actual problem. Accuracy collapsed.
+
+With `λ = 0.01`, things worked beautifully. Test accuracy went from 84 percent (no regularization) to 88.5 percent. The model fit the spiral better than it had without the term, because the regularizer gently encouraged each hidden unit to specialize on a different region of the input space instead of duplicating each other's work.
+
+The most fun part of this experiment was visualizing what each hidden unit had actually learned. With only three hidden units, we can plot each one's individual decision surface (the boundary where its tanh activation crosses zero) alongside the composite output:
+
+![Per-hidden-unit decision boundaries on the unregularized spiral, k=3, 84% accuracy](/blog/hw1/Q4_cell0_out2.png)
+
+That is the unregularized version. Notice how Hidden Node 1 and Hidden Node 2 carve up the space in similar ways: both are roughly horizontal-ish boundaries through the middle. The composite uses them, but redundantly.
+
+After adding the orthogonality penalty:
+
+![Per-hidden-unit decision boundaries on the regularized spiral, k=3, 88.5% accuracy](/blog/hw1/Q4_cell0_out5.png)
+
+The three nodes have rotated to face different directions. The composite boundary is sharper. Same number of parameters, more useful arrangement.
+
+The order-of-magnitude difference between `λ = 1` (broken) and `λ = 0.01` (better than baseline) is the lesson worth keeping. Regularization is not a switch. The strength matters more than people give it credit for, and the right strength is dataset-specific. A simpler dataset would tolerate (and benefit from) a heavier penalty. A complex one needs a featherweight.
+
+This generalizes well beyond orthogonality penalties. Weight decay, dropout rate, label smoothing, every regularizer has a sweet spot, and finding it is part of the work, not an afterthought. Papers report the value the authors used. They rarely walk through the failure modes at adjacent values, which is exactly where the intuition lives.
+
+## What this whole tinkering taught me
+
+Four experiments. About a weekend of work. Maybe three hundred lines of code. The artifact of value is not the model, which fits on a napkin. It is the set of instincts that came out of running it.
+
+The first instinct is geometric. Hidden-layer width is a function of the dataset's complexity, not a hyperparameter to be tuned in the abstract. When I look at a new problem now, I find myself asking what shape the decision boundary needs to have, and only then thinking about parameter counts. That is a different starting point than "let me try a few sizes and see."
+
+The second instinct is about loss functions. Cross-entropy paired with softmax (or sigmoid) is not a stylistic choice. It is the combination where the activation's derivative cancels out cleanly, leaving a strong gradient signal proportional to the error. MSE on a sigmoid output is the same model, mathematically valid, practically four times slower because of saturation. I had read this rule a dozen times. Now I have watched it.
+
+The third instinct is about how some math is not arbitrary. Softmax-and-cross-entropy collapses to `predicted - target`. That is a clean, simple thing. Every framework hard-codes them as a single op for that reason. When something in ML feels suspiciously elegant, that is usually the math telling us we are in the right place.
+
+The fourth instinct is that regularization is a continuous dial. Order-of-magnitude differences in `λ` produce qualitatively different models on the same data. Treating it as on-or-off is leaving a lot on the table.
+
+None of this required fancy infrastructure. All of it required slowing down enough to derive what `model.fit()` is doing. The specific instincts will keep coming up. The next time someone tells me a model is not converging, I will not ask "what learning rate did you try." I will ask what loss function and what activation, and whether the gradients are saturating. That is a much better question.
+
+I have three more of these experiments queued up: a convolutional autoencoder, a small transformer for arithmetic, and a generative model trained on faces. Each one taught me something I want to write down before I forget it. This was the first.
