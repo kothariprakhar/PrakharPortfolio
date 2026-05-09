@@ -22,6 +22,9 @@ export interface BlogPost {
   created_at: string;
   /** ISO date string; defaults to created_at when not specified. */
   updated_at: string;
+  /** Pre-computed display string like "12 min read" so client cards
+   * don't need access to the full content. Computed at read time. */
+  reading_time: string;
 }
 
 export type BlogPostMeta = Omit<BlogPost, "content">;

@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
 import type { BlogPost, BlogPostMeta } from "./blog-shared";
+import { estimateReadingTime } from "./blog-shared";
 
 /**
  * File-based MDX blog — server-only.
@@ -62,6 +63,7 @@ function readAllPosts(): BlogPost[] {
       published: data.published !== false,
       created_at: createdISO,
       updated_at: updatedISO,
+      reading_time: estimateReadingTime(content),
     } satisfies BlogPost;
   });
 
