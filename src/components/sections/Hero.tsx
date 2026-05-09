@@ -31,6 +31,36 @@ export function Hero() {
       ref={sectionRef}
       className="relative min-h-screen flex items-center px-4 md:px-6"
     >
+      {/* Right Now panel — quiet agency signal in the top-right */}
+      <motion.aside
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6, delay: 1.4, ease: "easeOut" }}
+        className="hidden md:block absolute top-[18vh] right-[6vw] lg:right-[8vw] max-w-[220px]"
+      >
+        <div className="flex items-center gap-3 mb-4">
+          <span className="h-[1px] w-6 bg-accent-blue/60" />
+          <span className="font-mono text-[10px] tracking-[0.2em] text-text-muted uppercase">
+            Right Now
+          </span>
+        </div>
+        <ul className="space-y-2.5">
+          {[
+            "Building CodeVision (live)",
+            "Studying ML at Kellogg + McCormick",
+            "Open to AI/PM roles, Summer 2026",
+          ].map((item) => (
+            <li
+              key={item}
+              className="flex items-start gap-2.5 text-sm text-text-secondary leading-snug"
+            >
+              <span className="mt-1.5 w-1 h-1 rounded-full bg-accent-blue/70 shrink-0" />
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      </motion.aside>
+
       <motion.div
         variants={containerVariants}
         initial="hidden"
