@@ -269,5 +269,3 @@ The third instinct is about how some math is not arbitrary. Softmax-and-cross-en
 The fourth instinct is that regularization is a continuous dial. Order-of-magnitude differences in `λ` produce qualitatively different models on the same data. Treating it as on-or-off is leaving a lot on the table.
 
 None of this required fancy infrastructure. All of it required slowing down enough to derive what `model.fit()` is doing. The specific instincts will keep coming up. The next time someone tells me a model is not converging, I will not ask "what learning rate did you try." I will ask what loss function and what activation, and whether the gradients are saturating. That is a much better question.
-
-I have three more of these experiments queued up: a convolutional autoencoder, a small transformer for arithmetic, and a generative model trained on faces. Each one taught me something I want to write down before I forget it. This was the first.
