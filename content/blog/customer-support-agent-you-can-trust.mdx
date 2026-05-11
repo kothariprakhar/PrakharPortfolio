@@ -1,0 +1,474 @@
+---
+title: "Building an autonomous customer support agent worth shipping"
+excerpt: "An LLM that can email customers, query the database, and quote policy. The interesting part is not the language model. It is the boring scaffolding around it that decides what the agent is allowed to do, when, and to whom."
+date: "2026-03-04"
+tags: ["AI / ML", "Agentic AI", "LLMs", "Tool Use", "Safety"]
+published: true
+---
+
+The first time I saw an LLM "use a tool" in the way ChatGPT does it (look up the weather, run a calculation, query a database), the demo felt like science fiction. The model emits a structured request, our code runs it, the result goes back in, and the model continues reasoning. The boundary between "thinking" and "acting" dissolves into one loop. It is a beautiful pattern.
+
+It is also a deeply uncomfortable pattern the moment we try to put it in production. An agent that can run SQL is also an agent that can run the wrong SQL. An agent that can draft customer emails is also an agent that can draft customer emails it should not have drafted. The model is going to be confidently wrong some of the time, and "confidently wrong" plus "tools that touch real systems" is how we end up explaining things to lawyers.
+
+So I spent a few weekends building one anyway. The setup is a fictional company called MediaVault, a regional video rental chain whose operational data lives in the [Sakila sample database](https://dev.mysql.com/doc/sakila/en/). They get a steady stream of customer support emails (billing questions, late fee disputes, account changes, occasional rage). The job of the agent is to read each email, decide what to do, and either draft a reply or escalate to a human.
+
+The interesting work is not the language model. The interesting work is the scaffolding around it. This post walks through the whole system: how the orchestration loop is structured, what tools the agent has, the approval gate that intercepts every tool call before it executes, the skill document that gives the agent strategy without hardcoding rules, and finally the actual traces from running it on ten real emails. There is also a section at the end about what happened when I "presented" the prototype to three skeptical stakeholders, because the most useful part of building this was learning what questions cautious people ask before they will let an AI agent touch a real customer.
+
+## What we actually mean by an "agent"
+
+The word agent has been doing a lot of work recently and it is worth slowing down on what it means in practice. For our purposes, an agent is an LLM that operates inside a loop:
+
+<svg viewBox="0 0 700 360" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: 'auto', background: '#F2EEE5', borderRadius: '12px', border: '1px solid rgba(160,82,45,0.10)', margin: '24px 0' }}>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#A0522D" />
+    </marker>
+  </defs>
+  <rect x="40" y="30" width="160" height="60" rx="8" fill="#FAF8F3" stroke="#A0522D" strokeWidth="1.5" />
+  <text x="120" y="56" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="13" fontWeight="600" fill="#1A1815">User message</text>
+  <text x="120" y="74" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="11" fill="#4A453D">"Why is my bill $5 higher?"</text>
+  <line x1="200" y1="60" x2="265" y2="60" stroke="#A0522D" strokeWidth="1.5" markerEnd="url(#arrow)" />
+  <rect x="265" y="30" width="170" height="60" rx="8" fill="#FAF8F3" stroke="#A0522D" strokeWidth="1.5" />
+  <text x="350" y="56" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="13" fontWeight="600" fill="#1A1815">LLM call</text>
+  <text x="350" y="74" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="11" fill="#4A453D">with tool schemas</text>
+  <line x1="435" y1="60" x2="495" y2="60" stroke="#A0522D" strokeWidth="1.5" markerEnd="url(#arrow)" />
+  <polygon points="495,30 660,30 660,90 495,90 470,60" fill="#FAF8F3" stroke="#A0522D" strokeWidth="1.5" />
+  <text x="575" y="56" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="13" fontWeight="600" fill="#1A1815">Tool call?</text>
+  <text x="575" y="74" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="11" fill="#4A453D">(yes / no)</text>
+  <line x1="575" y1="90" x2="575" y2="160" stroke="#A0522D" strokeWidth="1.5" markerEnd="url(#arrow)" />
+  <text x="585" y="125" fontFamily="ui-monospace" fontSize="10" fill="#A0522D">YES</text>
+  <rect x="475" y="160" width="200" height="60" rx="8" fill="#FAF8F3" stroke="#A0522D" strokeWidth="1.5" />
+  <text x="575" y="186" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="13" fontWeight="600" fill="#1A1815">Execute tool</text>
+  <text x="575" y="204" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="11" fill="#4A453D">SQL, lookup, draft, etc.</text>
+  <path d="M 475 190 Q 350 190 350 90" stroke="#A0522D" strokeWidth="1.5" fill="none" markerEnd="url(#arrow)" />
+  <text x="350" y="155" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="10" fill="#4A453D">Append result, loop</text>
+  <text x="470" y="60" textAnchor="middle" fontFamily="ui-monospace" fontSize="10" fill="#A0522D" transform="rotate(-90, 470, 60)"></text>
+  <line x1="265" y1="270" x2="350" y2="270" stroke="#A0522D" strokeWidth="1.5" />
+  <line x1="350" y1="270" x2="350" y2="220" stroke="#A0522D" strokeWidth="1.5" markerEnd="url(#arrow)" />
+  <text x="220" y="240" fontFamily="ui-monospace" fontSize="10" fill="#A0522D">NO</text>
+  <line x1="495" y1="60" x2="495" y2="270" stroke="#A0522D" strokeWidth="1.5" />
+  <line x1="495" y1="270" x2="350" y2="270" stroke="#A0522D" strokeWidth="1.5" />
+  <rect x="265" y="220" width="170" height="60" rx="8" fill="#FAF8F3" stroke="#A0522D" strokeWidth="1.5" />
+  <text x="350" y="246" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="13" fontWeight="600" fill="#1A1815">Final response</text>
+  <text x="350" y="264" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="11" fill="#4A453D">return to user</text>
+  <text x="350" y="320" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="11" fill="#8A8579" fontStyle="italic">The agent loops between thinking (LLM) and acting (tools) until it has nothing left to do.</text>
+</svg>
+
+That is the entire pattern. Three things matter for understanding what makes this different from a chatbot.
+
+The first is that the model is given a list of tools it can call (essentially function signatures) as part of its prompt. When it wants to invoke one, it returns a structured request instead of a regular text response. Our code runs the function and feeds the result back into the conversation. This is the same pattern as OpenAI's function calling, Anthropic's tool use, and Groq's tool integration. Different APIs, same idea.
+
+The second is that the loop runs as many times as needed. If the agent needs to look up the customer first, then check the policy, then draft an email, that is three tool calls in a row before it produces the final response. The orchestration code does not need to know in advance how many calls will happen. That is the agent's job.
+
+The third is that no part of this loop guarantees the agent will do the right thing. The model decides what to call. The model decides what arguments to pass. The model decides when to stop. If we are running tools that touch real systems, we need a separate layer of enforcement that does not trust the model. That is the safety scaffolding the rest of this post is about.
+
+## The MediaVault setup
+
+To make any of this concrete I needed a realistic data model and a realistic problem. The Sakila database is the canonical sample database used in SQL tutorials, modeling a video rental company with around 16 tables: customers, rentals, payments, films, stores, staff. It is exactly the kind of operational schema that a small support team would actually need to query. I treated it as MediaVault's production database for this prototype.
+
+```python
+import sqlite3
+import pandas as pd
+
+conn = sqlite3.connect('./data/sakila_master.db')
+tables = pd.read_sql("SELECT name FROM sqlite_master WHERE type='table';", conn)
+print(tables['name'].tolist())
+# ['actor', 'address', 'category', 'city', 'country', 'customer',
+#  'film', 'film_actor', 'film_category', 'inventory', 'language',
+#  'payment', 'rental', 'staff', 'store']
+```
+
+The other two inputs are a CSV of inbound customer emails (the support inbox) and a markdown file of company policies (`mediavault_policies.md`) covering things like late fee schedules, refund thresholds, escalation criteria, and a "communication guidelines" section about brand tone. The agent has to read the email, query the database where relevant, look up the policy where relevant, and produce one of two outputs: a drafted customer reply or an escalation ticket for human review.
+
+## Tool 1 and 2: Reading the world
+
+The first two tools give the agent eyes. It can ask what tables exist, and it can run read-only SQL.
+
+```python
+def get_db_schema():
+    conn = sqlite3.connect(db_path)
+    tables = pd.read_sql("SELECT name FROM sqlite_master WHERE type='table';", conn)
+    schema = {}
+    for table in tables['name']:
+        info = pd.read_sql(f"PRAGMA table_info({table});", conn)
+        schema[table] = info.to_dict(orient='records')
+    conn.close()
+    return schema
+
+def run_sql_query(query):
+    # Block any data modification at the Python layer
+    forbidden = re.compile(r"\b(INSERT|UPDATE|DELETE|DROP|ALTER|CREATE)\b", re.IGNORECASE)
+    if forbidden.search(query):
+        return {"error": "Query rejected: only SELECT statements are permitted."}
+    if not query.strip().lower().startswith("select"):
+        return {"error": "Only SELECT statements are allowed."}
+    # Cap result size so we never dump the whole customer table into the context
+    if "limit" not in query.lower():
+        query = query.rstrip(';') + " LIMIT 100;"
+    conn = sqlite3.connect(db_path)
+    df = pd.read_sql(query, conn)
+    conn.close()
+    return df.head(100).to_dict(orient='records')
+```
+
+This is the first place where the boring scaffolding shows up. Two checks in `run_sql_query` that have nothing to do with the LLM:
+
+1. A regex that rejects any query containing `INSERT`, `UPDATE`, `DELETE`, `DROP`, `ALTER`, or `CREATE`. The model could absolutely generate one of these. We do not want it to execute.
+2. An automatic `LIMIT 100` clause appended to any query that does not already have one. Without this, a model that gets confused about whether a customer is a single row or a whole segment could generate `SELECT * FROM customer` and stuff thousands of rows of PII into the conversation context.
+
+These are small. They look like obvious good practices. They are also the difference between a system we can run on real data and a system we cannot.
+
+Why register both `get_db_schema` and `run_sql_query` as separate tools instead of just letting the agent guess column names? Because giving the agent a way to discover the schema means it can write better queries. The schema tool is essentially `\d+` in psql, exposed to the model. With it, the agent knows that the rental table has a `rental_date` column, and that customer email lives in the customer table joined through address. Without it, the agent guesses, and guessing produces queries that fail.
+
+## Tool 3: Reading the policy
+
+The policy document is a markdown file with sections for late fees, account changes, escalation criteria, refund authorities, and communication guidelines. The agent needs to be able to look up relevant sections without us hardcoding "if email is about late fees, return section 4.2."
+
+The retrieval tool parses the markdown by heading hierarchy, then either matches by `policy_area` (a direct lookup) or ranks sections by simple keyword frequency:
+
+```python
+def retrieve_policy_sections(policy_area=None, query=None, top_k=3):
+    sections = parse_policy_document()    # split markdown by ## headings
+    results = []
+
+    # Mode 1: direct match by named policy area
+    if policy_area:
+        for sec in sections:
+            if policy_area.lower() in sec['heading_path'].lower():
+                results.append(sec)
+
+    # Mode 2: keyword ranking fallback
+    if not results and query:
+        ranked = sorted(sections,
+                        key=lambda s: bm25_score(query, s['text']),
+                        reverse=True)
+        results = ranked[:top_k]
+
+    return results
+```
+
+The "BM25 score" here is just keyword counting. This is a deliberately small implementation. We could have used a proper embedding-based retrieval system (compute embeddings for each section, embed the query, find nearest neighbors). For this prototype, the policy document is short enough that simple counting works, and the tradeoff is that we keep things debuggable. When the agent retrieves the wrong section, we can read the function and see exactly why.
+
+This is one of the harder design choices in the project. Embedding-based retrieval would be more robust at scale, but it would also introduce a new failure mode (the embeddings might place semantically similar but factually different policies near each other) and a new dependency (an embedding model and a vector store). Sometimes the right answer is the dumber one that we can audit.
+
+## Tool 4 and 5: Acting on the world
+
+The last two tools are the ones that produce outputs the customer might actually see.
+
+```python
+def draft_customer_email(original_email, findings, policy_context,
+                         reference_number=None, customer_name=None):
+    greeting = f"Dear {customer_name}," if customer_name else "Dear Customer,"
+    issue_summary = f"We received your inquiry: '{original_email.strip()}'."
+    findings_text = (f"Our investigation found: {findings}"
+                     if findings else "Our team is still investigating.")
+    filtered_policy = filter_policy_context(policy_context) if policy_context else ""
+    policy_text = (f"Relevant policy: {filtered_policy}"
+                   if filtered_policy else "")
+    next_steps = "If you have further questions, please reply to this email."
+    signoff = "Thank you for choosing MediaVault.\nSincerely,\nMediaVault Support Team"
+    draft = f"{greeting}\n\n{issue_summary}\n\n{findings_text}\n\n{policy_text}\n\n{next_steps}\n\n{signoff}"
+
+    errors = validate_draft(draft, filtered_policy)
+    return {"draft": draft, "validation_errors": errors}
+
+def create_escalation_ticket(original_email, investigation_summary,
+                             escalation_reason, suggested_routing):
+    ticket = {
+        "original_email": original_email,
+        "investigation_summary": investigation_summary,
+        "escalation_reason": escalation_reason,
+        "suggested_routing": suggested_routing,
+    }
+    return ticket
+```
+
+A few things worth slowing down on here.
+
+The drafting tool does not just hand the raw email body to the LLM and say "write back." It enforces a template structure: greeting, issue summary, findings, policy context, next steps, sign-off. This is partly to keep the brand voice consistent and partly because a structured template is much easier to validate. We can write rules like "the draft must contain a sign-off" because we control where the sign-off would go.
+
+The `validate_draft` step runs a forbidden-phrase check (the draft cannot include words like "guarantee", "promise", "confidential", "other customer") and structural checks (minimum length, presence of a sign-off). If validation fails, the agent gets the errors back and has to retry. This is another layer of scaffolding that does not trust the model.
+
+The `filter_policy_context` step strips forbidden phrases out of the policy text before it gets included in the draft. This handles a specific failure mode: the policy document might internally reference things like "do not promise a refund," and we do not want that phrase to leak into a customer-facing email even when it appears in retrieved context.
+
+The escalation tool is deliberately structured. It produces a ticket object with named fields (original email, investigation summary, escalation reason, suggested routing), not a free-text "we should escalate this." Structured escalation makes it easy to route to the right team and easy to audit later.
+
+## The full toolbox
+
+<svg viewBox="0 0 720 380" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: 'auto', background: '#F2EEE5', borderRadius: '12px', border: '1px solid rgba(160,82,45,0.10)', margin: '24px 0' }}>
+  <ellipse cx="360" cy="190" rx="100" ry="60" fill="#FAF8F3" stroke="#A0522D" strokeWidth="2" />
+  <text x="360" y="184" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="14" fontWeight="700" fill="#1A1815">LLM Agent</text>
+  <text x="360" y="202" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="11" fill="#4A453D">orchestration loop</text>
+  <rect x="30" y="30" width="160" height="50" rx="6" fill="#FAF8F3" stroke="#A0522D" strokeWidth="1" />
+  <text x="110" y="50" textAnchor="middle" fontFamily="ui-monospace" fontSize="11" fill="#1A1815">get_current_date()</text>
+  <text x="110" y="66" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="10" fill="#8A8579">today's date</text>
+  <line x1="190" y1="55" x2="280" y2="160" stroke="#A0522D" strokeWidth="1" strokeOpacity="0.5" />
+  <rect x="30" y="100" width="160" height="50" rx="6" fill="#FAF8F3" stroke="#A0522D" strokeWidth="1" />
+  <text x="110" y="120" textAnchor="middle" fontFamily="ui-monospace" fontSize="11" fill="#1A1815">get_db_schema()</text>
+  <text x="110" y="136" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="10" fill="#8A8579">table + column listing</text>
+  <line x1="190" y1="125" x2="280" y2="170" stroke="#A0522D" strokeWidth="1" strokeOpacity="0.5" />
+  <rect x="30" y="170" width="160" height="50" rx="6" fill="#FAF8F3" stroke="#A0522D" strokeWidth="1" />
+  <text x="110" y="190" textAnchor="middle" fontFamily="ui-monospace" fontSize="11" fill="#1A1815">run_sql_query(q)</text>
+  <text x="110" y="206" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="10" fill="#8A8579">SELECT only, LIMIT 100</text>
+  <line x1="190" y1="195" x2="280" y2="195" stroke="#A0522D" strokeWidth="1" strokeOpacity="0.5" />
+  <rect x="30" y="240" width="160" height="50" rx="6" fill="#FAF8F3" stroke="#A0522D" strokeWidth="1" />
+  <text x="110" y="260" textAnchor="middle" fontFamily="ui-monospace" fontSize="11" fill="#1A1815">get_policy_context</text>
+  <text x="110" y="276" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="10" fill="#8A8579">retrieve from policy.md</text>
+  <line x1="190" y1="265" x2="280" y2="220" stroke="#A0522D" strokeWidth="1" strokeOpacity="0.5" />
+  <rect x="530" y="100" width="160" height="50" rx="6" fill="#FAF8F3" stroke="#A0522D" strokeWidth="1" />
+  <text x="610" y="120" textAnchor="middle" fontFamily="ui-monospace" fontSize="11" fill="#1A1815">draft_customer_email</text>
+  <text x="610" y="136" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="10" fill="#8A8579">templated, validated reply</text>
+  <line x1="530" y1="125" x2="440" y2="170" stroke="#A0522D" strokeWidth="1" strokeOpacity="0.5" />
+  <rect x="530" y="170" width="160" height="50" rx="6" fill="#FAF8F3" stroke="#A0522D" strokeWidth="1" />
+  <text x="610" y="190" textAnchor="middle" fontFamily="ui-monospace" fontSize="11" fill="#1A1815">create_escalation_ticket</text>
+  <text x="610" y="206" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="10" fill="#8A8579">structured human handoff</text>
+  <line x1="530" y1="195" x2="460" y2="195" stroke="#A0522D" strokeWidth="1" strokeOpacity="0.5" />
+  <rect x="200" y="310" width="320" height="40" rx="6" fill="#A0522D" fillOpacity="0.10" stroke="#A0522D" strokeWidth="1.5" strokeDasharray="4 2" />
+  <text x="360" y="332" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="12" fontWeight="600" fill="#1A1815">Approval Gate intercepts every tool call</text>
+  <line x1="360" y1="250" x2="360" y2="310" stroke="#A0522D" strokeWidth="1.5" strokeDasharray="3 3" />
+  <text x="375" y="285" fontFamily="ui-sans-serif" fontSize="10" fill="#8A8579" fontStyle="italic">all calls</text>
+  <text x="110" y="20" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="11" fill="#8A8579" fontStyle="italic">Reading tools (left)</text>
+  <text x="610" y="80" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="11" fill="#8A8579" fontStyle="italic">Acting tools (right)</text>
+</svg>
+
+The agent has six tools total: four reading tools on the left (date, schema, query, policy) and two acting tools on the right (draft, escalate). Every single tool call passes through the approval gate before it runs.
+
+## The Approval Gate
+
+The gate is the single most important piece of code in this whole project. It runs after the model has produced a tool call but before our code actually executes it. The gate gets the tool name and the proposed arguments, and it returns either approval or a refusal with a reason.
+
+```python
+def approval_gate(tool_name, tool_args):
+    """Validates tool calls before execution. Returns (approved, reason)."""
+
+    # 1. SQL guardrails: prevent data modification and bulk PII access
+    if tool_name == "run_sql_query":
+        query = tool_args.get("query", "").upper()
+
+        if re.search(r'\b(UPDATE|DELETE|DROP|INSERT|ALTER)\b', query):
+            return False, "Data modification queries are not allowed."
+
+        if re.search(r'\b(EMAIL|ADDRESS|PHONE)\b', query):
+            if "WHERE" not in query:
+                return False, "Bulk access to PII is restricted."
+            if not re.search(r'WHERE\s+.*?\b(CUSTOMER_ID|EMAIL)\b', query, re.DOTALL):
+                return False, "PII access must be filtered by Customer ID or Email."
+
+    # 2. Draft guardrails: prevent leaking internal data
+    if tool_name == "draft_customer_email":
+        findings = tool_args.get("findings", "").lower()
+        if "internal use only" in findings or "confidential" in findings:
+            return False, "Draft contains internal/confidential information."
+
+    # 3. Force escalation for high-risk emails
+    if tool_name == "draft_customer_email":
+        original_email = tool_args.get("original_email", "").lower()
+        escalation_keywords = ["sue", "lawyer", "legal action",
+                               "unsafe", "danger", "harassment"]
+        for keyword in escalation_keywords:
+            if keyword in original_email:
+                return False, (
+                    f"Email contains high-risk keyword '{keyword}'. "
+                    "Must be escalated, not drafted."
+                )
+
+    return True, "Approved"
+```
+
+The gate enforces three categories of policy:
+
+<svg viewBox="0 0 720 360" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: 'auto', background: '#F2EEE5', borderRadius: '12px', border: '1px solid rgba(160,82,45,0.10)', margin: '24px 0' }}>
+  <defs>
+    <marker id="arrow2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#A0522D" />
+    </marker>
+  </defs>
+  <rect x="280" y="20" width="160" height="50" rx="8" fill="#FAF8F3" stroke="#A0522D" strokeWidth="2" />
+  <text x="360" y="42" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="13" fontWeight="700" fill="#1A1815">Tool call</text>
+  <text x="360" y="60" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="11" fill="#4A453D">requested by LLM</text>
+  <line x1="360" y1="70" x2="360" y2="100" stroke="#A0522D" strokeWidth="1.5" markerEnd="url(#arrow2)" />
+  <polygon points="280,100 440,100 440,160 280,160" fill="#FAF8F3" stroke="#A0522D" strokeWidth="1.5" />
+  <text x="360" y="125" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="13" fontWeight="600" fill="#1A1815">Approval Gate</text>
+  <text x="360" y="145" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="10" fill="#4A453D">runs all 3 checks</text>
+  <line x1="280" y1="180" x2="120" y2="220" stroke="#A0522D" strokeWidth="1.2" />
+  <line x1="360" y1="180" x2="360" y2="220" stroke="#A0522D" strokeWidth="1.2" />
+  <line x1="440" y1="180" x2="600" y2="220" stroke="#A0522D" strokeWidth="1.2" />
+  <text x="360" y="178" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="9" fill="#8A8579">checks each tool call against:</text>
+  <rect x="20" y="220" width="200" height="80" rx="6" fill="#FAF8F3" stroke="#A0522D" strokeWidth="1" />
+  <text x="120" y="244" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="12" fontWeight="600" fill="#1A1815">1. SQL safety</text>
+  <text x="120" y="262" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="10" fill="#4A453D">no UPDATE/DELETE/DROP</text>
+  <text x="120" y="276" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="10" fill="#4A453D">no bulk PII queries</text>
+  <text x="120" y="290" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="10" fill="#4A453D">PII must filter by ID</text>
+  <rect x="260" y="220" width="200" height="80" rx="6" fill="#FAF8F3" stroke="#A0522D" strokeWidth="1" />
+  <text x="360" y="244" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="12" fontWeight="600" fill="#1A1815">2. Draft hygiene</text>
+  <text x="360" y="262" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="10" fill="#4A453D">no "confidential"</text>
+  <text x="360" y="276" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="10" fill="#4A453D">no "internal use only"</text>
+  <text x="360" y="290" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="10" fill="#4A453D">in customer findings</text>
+  <rect x="500" y="220" width="200" height="80" rx="6" fill="#FAF8F3" stroke="#A0522D" strokeWidth="1" />
+  <text x="600" y="244" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="12" fontWeight="600" fill="#1A1815">3. Forced escalation</text>
+  <text x="600" y="262" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="10" fill="#4A453D">high-risk keywords</text>
+  <text x="600" y="276" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="10" fill="#4A453D">block drafting,</text>
+  <text x="600" y="290" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="10" fill="#4A453D">force escalate path</text>
+  <text x="360" y="335" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="11" fill="#8A8579" fontStyle="italic">Any failed check returns a refusal with a reason. The LLM sees it and adapts.</text>
+</svg>
+
+A few things worth noting about how the gate is designed.
+
+First, it operates on the model's output, not the model's prompt. We are not asking the LLM nicely "please don't write DELETE queries." We are blocking DELETE queries even if the LLM tries. The system prompt does instruct the model on what is allowed, but we never rely on that instruction being followed. The instruction is for efficiency (so the model does not waste calls trying things that will be blocked); the gate is for safety (so the rules are enforced regardless of what the model decides).
+
+Second, when the gate blocks a call, it returns a structured error to the agent that says exactly why. The agent gets to see "Bulk access to PII is restricted" and adapt. It might rewrite the query to filter by a specific customer, or it might decide to give up and escalate. The gate is a teacher, not just a wall.
+
+Third, there is a category of check that is genuinely hard. Forcing escalation when the email body contains "lawyer" works as a simple keyword scan, but the same logic written too liberally would catch any email mentioning "I had to call my lawyer about my mortgage" and over-escalate. The right response to this brittleness is not a more clever regex, it is to treat the gate as a coarse filter and to invest in better escalation logic at the agent level.
+
+The single biggest critique of this design (which I will get to in the stakeholder section) is that all three of these checks live in Python code. A more defensible architecture would push some of them down into the infrastructure: a database user with `GRANT SELECT` only at the Postgres level, statement timeouts to prevent expensive queries, an audit log piped into a SIEM. The Python gate is one layer in a defense-in-depth strategy. It should not be the only layer.
+
+## The skill: giving the agent strategy without hardcoding it
+
+Tools are the agent's hands. Strategy is what tells the agent when to use which hand. The strategy lives in a separate document called `SKILL.md` that I wrote alongside the tools. The skill is named "Email Triage" and it specifies a state machine the agent should follow:
+
+<svg viewBox="0 0 720 460" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: 'auto', background: '#F2EEE5', borderRadius: '12px', border: '1px solid rgba(160,82,45,0.10)', margin: '24px 0' }}>
+  <defs>
+    <marker id="arrow3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#A0522D" />
+    </marker>
+  </defs>
+  <rect x="280" y="20" width="160" height="50" rx="8" fill="#FAF8F3" stroke="#A0522D" strokeWidth="2" />
+  <text x="360" y="42" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="13" fontWeight="700" fill="#1A1815">New email</text>
+  <text x="360" y="60" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="11" fill="#4A453D">arrives in support queue</text>
+  <line x1="360" y1="70" x2="360" y2="95" stroke="#A0522D" strokeWidth="1.5" markerEnd="url(#arrow3)" />
+  <rect x="240" y="95" width="240" height="50" rx="8" fill="#FAF8F3" stroke="#A0522D" strokeWidth="1.5" />
+  <text x="360" y="118" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="12" fontWeight="600" fill="#1A1815">Stage 1: Safety check</text>
+  <text x="360" y="135" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="10" fill="#4A453D">scan for legal/safety keywords</text>
+  <line x1="240" y1="120" x2="120" y2="200" stroke="#A0522D" strokeWidth="1.5" markerEnd="url(#arrow3)" />
+  <text x="155" y="170" fontFamily="ui-monospace" fontSize="10" fill="#A0522D">High risk</text>
+  <line x1="360" y1="145" x2="360" y2="200" stroke="#A0522D" strokeWidth="1.5" markerEnd="url(#arrow3)" />
+  <text x="370" y="180" fontFamily="ui-monospace" fontSize="10" fill="#A0522D">Low/Med</text>
+  <rect x="260" y="200" width="200" height="50" rx="8" fill="#FAF8F3" stroke="#A0522D" strokeWidth="1.5" />
+  <text x="360" y="223" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="12" fontWeight="600" fill="#1A1815">Stage 2: Investigate</text>
+  <text x="360" y="240" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="10" fill="#4A453D">DB lookup + policy retrieval</text>
+  <line x1="360" y1="250" x2="360" y2="295" stroke="#A0522D" strokeWidth="1.5" markerEnd="url(#arrow3)" />
+  <polygon points="260,295 460,295 460,335 260,335 240,315" fill="#FAF8F3" stroke="#A0522D" strokeWidth="1.5" />
+  <text x="360" y="320" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="12" fontWeight="600" fill="#1A1815">Stage 3: Decide path</text>
+  <line x1="260" y1="335" x2="120" y2="380" stroke="#A0522D" strokeWidth="1.5" markerEnd="url(#arrow3)" />
+  <line x1="360" y1="335" x2="360" y2="380" stroke="#A0522D" strokeWidth="1.5" markerEnd="url(#arrow3)" />
+  <line x1="460" y1="335" x2="600" y2="380" stroke="#A0522D" strokeWidth="1.5" markerEnd="url(#arrow3)" />
+  <rect x="20" y="200" width="200" height="50" rx="8" fill="#A0522D" fillOpacity="0.15" stroke="#A0522D" strokeWidth="1.5" />
+  <text x="120" y="223" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="12" fontWeight="700" fill="#1A1815">Path A: Red Alert</text>
+  <text x="120" y="240" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="10" fill="#4A453D">escalate, no draft</text>
+  <line x1="120" y1="250" x2="120" y2="380" stroke="#A0522D" strokeWidth="1" strokeOpacity="0.5" />
+  <rect x="20" y="380" width="200" height="60" rx="8" fill="#FAF8F3" stroke="#A0522D" strokeWidth="1" />
+  <text x="120" y="404" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="11" fontWeight="600" fill="#1A1815">create_escalation_ticket</text>
+  <text x="120" y="420" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="10" fill="#4A453D">routed to Tier 2 queue,</text>
+  <text x="120" y="432" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="10" fill="#4A453D">no customer reply sent</text>
+  <rect x="260" y="380" width="200" height="60" rx="8" fill="#FAF8F3" stroke="#A0522D" strokeWidth="1" />
+  <text x="360" y="402" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="11" fontWeight="600" fill="#1A1815">Path B: Happy Path</text>
+  <text x="360" y="418" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="10" fill="#4A453D">draft_customer_email</text>
+  <text x="360" y="432" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="10" fill="#4A453D">routine info request</text>
+  <rect x="500" y="380" width="200" height="60" rx="8" fill="#FAF8F3" stroke="#A0522D" strokeWidth="1" />
+  <text x="600" y="402" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="11" fontWeight="600" fill="#1A1815">Path C: Policy Dispute</text>
+  <text x="600" y="418" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="10" fill="#4A453D">draft if policy strict,</text>
+  <text x="600" y="432" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="10" fill="#4A453D">escalate if discretion</text>
+</svg>
+
+Why write a skill document instead of dumping all of this into the system prompt?
+
+Three reasons. The first is engineering hygiene: the system prompt is already loaded with descriptions of the tools and the brand voice rules. Stuffing the entire decision tree into it makes the prompt unwieldy and increases token cost on every call. The second is portability: the same skill could be reused by a different model with a different system prompt format. The third is auditability: the skill is a markdown document that a non-engineer can read and reason about. When the customer service lead wants to understand what the agent does, we hand them `SKILL.md` and they can follow the logic. We do not need to dig through an 800-line system prompt to find the parts that matter.
+
+In the actual implementation, the skill is referenced by the system prompt ("you operate according to the Email Triage skill, which says: stage 1 is safety, stage 2 is investigation, stage 3 is one of three paths") rather than embedded verbatim. The agent has the structure in its head and follows it.
+
+## What happened on real emails
+
+I ran the full system on ten emails from the inbox. Eight were resolved autonomously (drafted reply queued for review). Two were escalated. The approval gate fired once, on email #1, blocking a draft attempt that should have been an escalation. The gate did exactly what it was supposed to do.
+
+Email #1 is the most instructive trace. The customer's subject line was "This is your FINAL CHANCE - Unacceptable Service & DEMANDS." The body contained the words "lawyer" and "sue." The agent's actual flow:
+
+<svg viewBox="0 0 720 480" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: 'auto', background: '#F2EEE5', borderRadius: '12px', border: '1px solid rgba(160,82,45,0.10)', margin: '24px 0' }}>
+  <defs>
+    <marker id="arrow4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#A0522D" />
+    </marker>
+  </defs>
+  <rect x="20" y="20" width="680" height="50" rx="6" fill="#FAF8F3" stroke="#A0522D" strokeWidth="1.5" />
+  <text x="40" y="44" textAnchor="start" fontFamily="ui-monospace" fontSize="11" fontWeight="600" fill="#1A1815">EMAIL #1</text>
+  <text x="40" y="60" textAnchor="start" fontFamily="ui-sans-serif" fontSize="11" fill="#4A453D">"FINAL CHANCE - Unacceptable Service & DEMANDS"  ·  body mentions "lawyer" and "sue"</text>
+  <line x1="120" y1="70" x2="120" y2="100" stroke="#A0522D" strokeWidth="1.2" markerEnd="url(#arrow4)" />
+  <rect x="20" y="100" width="200" height="44" rx="6" fill="#FAF8F3" stroke="#A0522D" strokeWidth="1" />
+  <text x="40" y="120" textAnchor="start" fontFamily="ui-monospace" fontSize="11" fontWeight="600" fill="#A0522D">Iter 1</text>
+  <text x="40" y="135" textAnchor="start" fontFamily="ui-sans-serif" fontSize="10" fill="#4A453D">get_policy_context("legal threat")</text>
+  <text x="180" y="125" textAnchor="end" fontFamily="ui-sans-serif" fontSize="10" fill="#1F4E3D">✓</text>
+  <line x1="120" y1="144" x2="120" y2="170" stroke="#A0522D" strokeWidth="1.2" markerEnd="url(#arrow4)" />
+  <rect x="20" y="170" width="220" height="44" rx="6" fill="#FAF8F3" stroke="#A0522D" strokeWidth="1" />
+  <text x="40" y="190" textAnchor="start" fontFamily="ui-monospace" fontSize="11" fontWeight="600" fill="#A0522D">Iter 2</text>
+  <text x="40" y="205" textAnchor="start" fontFamily="ui-sans-serif" fontSize="10" fill="#4A453D">run_sql_query (customer history)</text>
+  <text x="200" y="195" textAnchor="end" fontFamily="ui-sans-serif" fontSize="10" fill="#1F4E3D">✓</text>
+  <line x1="120" y1="214" x2="120" y2="240" stroke="#A0522D" strokeWidth="1.2" markerEnd="url(#arrow4)" />
+  <rect x="20" y="240" width="220" height="44" rx="6" fill="#FAF8F3" stroke="#A0522D" strokeWidth="1" />
+  <text x="40" y="260" textAnchor="start" fontFamily="ui-monospace" fontSize="11" fontWeight="600" fill="#A0522D">Iter 3a</text>
+  <text x="40" y="275" textAnchor="start" fontFamily="ui-sans-serif" fontSize="10" fill="#4A453D">run_sql_query (rental check)</text>
+  <text x="200" y="265" textAnchor="end" fontFamily="ui-sans-serif" fontSize="10" fill="#1F4E3D">✓</text>
+  <line x1="120" y1="284" x2="120" y2="310" stroke="#A0522D" strokeWidth="1.2" markerEnd="url(#arrow4)" />
+  <rect x="20" y="310" width="280" height="60" rx="6" fill="#7C3F1F" fillOpacity="0.12" stroke="#7C3F1F" strokeWidth="1.5" />
+  <text x="40" y="330" textAnchor="start" fontFamily="ui-monospace" fontSize="11" fontWeight="600" fill="#7C3F1F">Iter 3b</text>
+  <text x="40" y="345" textAnchor="start" fontFamily="ui-sans-serif" fontSize="10" fill="#4A453D">draft_customer_email(...)</text>
+  <text x="40" y="360" textAnchor="start" fontFamily="ui-sans-serif" fontSize="10" fontWeight="600" fill="#7C3F1F">⛔ BLOCKED by gate: high-risk keyword "sue"</text>
+  <line x1="160" y1="370" x2="160" y2="396" stroke="#A0522D" strokeWidth="1.2" markerEnd="url(#arrow4)" />
+  <rect x="20" y="396" width="280" height="60" rx="6" fill="#1F4E3D" fillOpacity="0.10" stroke="#1F4E3D" strokeWidth="1.5" />
+  <text x="40" y="416" textAnchor="start" fontFamily="ui-monospace" fontSize="11" fontWeight="600" fill="#1F4E3D">Iter 3c</text>
+  <text x="40" y="431" textAnchor="start" fontFamily="ui-sans-serif" fontSize="10" fill="#4A453D">create_escalation_ticket(...)</text>
+  <text x="40" y="446" textAnchor="start" fontFamily="ui-sans-serif" fontSize="10" fontWeight="600" fill="#1F4E3D">✓ APPROVED: routed to Tier 2 legal queue</text>
+  <rect x="380" y="100" width="320" height="280" rx="8" fill="#FAF8F3" stroke="#A0522D" strokeWidth="1.5" strokeDasharray="4 2" />
+  <text x="540" y="130" textAnchor="middle" fontFamily="ui-sans-serif" fontSize="12" fontWeight="700" fill="#1A1815">What the agent learned</text>
+  <text x="395" y="160" textAnchor="start" fontFamily="ui-sans-serif" fontSize="11" fill="#4A453D" fontWeight="600">Iter 1 · Policy</text>
+  <text x="395" y="178" textAnchor="start" fontFamily="ui-sans-serif" fontSize="10" fill="#4A453D">"Legal threats must be escalated</text>
+  <text x="395" y="192" textAnchor="start" fontFamily="ui-sans-serif" fontSize="10" fill="#4A453D">to Tier 2; no direct reply."</text>
+  <text x="395" y="218" textAnchor="start" fontFamily="ui-sans-serif" fontSize="11" fill="#4A453D" fontWeight="600">Iter 2 · Customer history</text>
+  <text x="395" y="236" textAnchor="start" fontFamily="ui-sans-serif" fontSize="10" fill="#4A453D">"Active customer, 14 prior rentals,</text>
+  <text x="395" y="250" textAnchor="start" fontFamily="ui-sans-serif" fontSize="10" fill="#4A453D">3 prior late returns, no disputes."</text>
+  <text x="395" y="276" textAnchor="start" fontFamily="ui-sans-serif" fontSize="11" fill="#4A453D" fontWeight="600">Iter 3a · Rental specifics</text>
+  <text x="395" y="294" textAnchor="start" fontFamily="ui-sans-serif" fontSize="10" fill="#4A453D">"Latest rental returned 8 days late;</text>
+  <text x="395" y="308" textAnchor="start" fontFamily="ui-sans-serif" fontSize="10" fill="#4A453D">$8 fee accrued per policy."</text>
+  <text x="395" y="334" textAnchor="start" fontFamily="ui-sans-serif" fontSize="11" fill="#7C3F1F" fontWeight="600">Iter 3b · Attempted draft</text>
+  <text x="395" y="352" textAnchor="start" fontFamily="ui-sans-serif" fontSize="10" fill="#4A453D">Agent had factual answer in hand</text>
+  <text x="395" y="366" textAnchor="start" fontFamily="ui-sans-serif" fontSize="10" fill="#4A453D">but tried to send it directly.</text>
+</svg>
+
+The interesting part of this trace is iteration 3. The agent had done its job. It had retrieved the legal-threat policy. It had pulled the customer's history. It had verified that the late fee was valid. It had a complete factual answer.
+
+And then it tried to send that factual answer directly to a customer who had just threatened to sue.
+
+The gate caught it. The agent saw the refusal ("Email contains high-risk keyword 'sue'. Must be escalated, not drafted") and switched to the escalation tool, which the gate approved. The customer got no direct reply. The legal queue got a structured ticket with the full investigation summary. A human took it from there.
+
+This is the entire point of the gate. The model behaved reasonably (it did do the investigation correctly) but then made a judgment call that did not match policy. The gate did not have to be smart. It just had to enforce the rule: do not send drafts to customers who used legal language.
+
+Of the other nine emails:
+- Email #2 (account email update): the agent drafted a clean reply asking for verification before changing the email on file.
+- Email #3 ("Loved PARADISE SABRINA!"): the agent thanked the customer with a friendly one-liner, no tools called.
+- Email #4 (URGENT: Intent to Pursue Legal Action): the agent went straight to escalation after retrieving the legal policy three times, no draft attempt.
+- Email #5 (waiver request for late return of "MAUDE MOD"): the agent drafted a polite policy explanation.
+- Emails #6 through #10: routine billing or account questions, all drafted cleanly.
+
+The headline number is 8 of 10 resolved autonomously, 2 escalated, gate fired once and corrected the agent's behavior. That is the kind of result that lets us start a conversation about a real pilot.
+
+## Trade-offs and the questions that actually decide whether this ships
+
+Building the prototype is the easy part. The interesting work is the conversation about whether to deploy it. I simulated this conversation by writing personas for three stakeholders (Customer Service Lead, IT Lead, VP Operations) and running a structured discussion about the alpha test results. The arguments that came up are the ones any real deployment would face.
+
+The Customer Service Lead's first question was about tone. She did not care about the deflection rate. She cared whether the agent's drafts sounded like a person or like a robot. In one trace the agent had told a customer "You must visit a store" without an apology or context. That single phrase was enough for her to want a human-in-the-loop period before any drafts went out unmediated. The trade-off she flagged: a bot that gives the right answer in the wrong tone is worse than a slightly delayed human reply.
+
+The IT Lead's first question was about the regex. He pointed out, correctly, that a Python regex blocking `DROP TABLE` is not a firewall. A clever attacker (or even a clever LLM) could encode the payload, use alternative SQL syntax, or find a parser quirk. He demanded that the database user the agent connects with be provisioned with `GRANT SELECT` only at the Postgres level, with statement timeouts to prevent expensive queries from hanging the database, and that all queries get piped to a SIEM (Splunk, Datadog) for anomaly detection. The trade-off he flagged: the Python gate is a reasonable second line of defense, but it should not be the first. Defense in depth is the principle.
+
+The VP of Operations cared about a metric I had not measured: re-open rate. If the agent resolves an email and the customer sends a follow-up email two days later, that is not a deflection, that is a hidden cost. Eight autonomous resolutions out of ten looks like an 80 percent win, but if four of those eight customers come back unhappy, the real win is closer to four out of ten. The trade-off she flagged: it is easy to measure success on the bot's terms (did it produce a response?) and much harder to measure success on the customer's terms (did they leave satisfied?).
+
+These three concerns are not unique to AI agents. They are the same concerns any new automation faces. What is different is that the failure modes are harder to predict and the surface area is larger. A traditional rules-based bot fails in legible ways: it returns the wrong canned response, or it cannot find a match at all. An LLM-based agent fails in fuzzier ways: it gives the right answer in the wrong tone, or it gives a confident answer that is subtly wrong, or it retrieves the wrong policy section because the wording was ambiguous.
+
+The negotiated outcome was a 50-emails-per-day pilot with three constraints: human-in-the-loop on every draft for the first two weeks, a dedicated `SELECT ONLY` Postgres user provisioned at the infrastructure level (not relying on the Python gate alone), and a hard 14-day review with metrics on deflection, re-open rate, and tone-rejected drafts. That is the shape of a defensible deployment plan for this kind of system. Build it under all the safety scaffolding, ship it under a human safety net, measure the right things, and remove the safety net only when the data supports it.
+
+## What this whole thing taught me
+
+The first instinct that came out of this is that "agentic AI" is not really about the language model. The language model is the easy part. Anthropic, OpenAI, Google, and Meta all ship models that can use tools competently. The hard part is the integration: the tool design, the gate logic, the policy retrieval, the escalation criteria, the validation rules, the system prompt that ties it all together. None of those are research problems. They are software engineering problems with safety implications.
+
+The second instinct is about defense in depth. Every safety mechanism in this system has a way to be defeated by a sufficiently clever input. The regex can be bypassed. The escalation keyword list is incomplete. The draft validator misses subtle tone issues. The right response to this is not to build one perfect mechanism. It is to layer multiple imperfect ones so that defeating any single one is not enough to cause real harm. The Python gate sits in front of the database. The infrastructure-level read-only user sits behind it. The audit log sits behind that. The human reviewer sits behind that. No single layer is sufficient. All layers together get us close to enough.
+
+The third instinct is the most useful one for thinking about agents as a product category. The hard question with any AI agent is not "what can it do" but "what is it allowed to do, and how do we know it stayed within those limits." The first question is increasingly trivial. Modern LLMs can do an enormous amount, and that amount is growing. The second question is where the real engineering work happens, and it does not get easier as models get better. A more capable model needs a more capable cage.
+
+The fourth instinct is about the conversations that happen after the prototype works. The Customer Service Lead, the IT Lead, and the VP of Operations all asked questions I did not initially have good answers to. That is not a sign the prototype was bad. That is the sign of a useful prototype: one that exists in concrete enough form that thoughtful people can poke at it and find the holes. A pitch deck does not surface those questions. A working trace does.
