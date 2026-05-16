@@ -1,10 +1,5 @@
-"use client";
-
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { ArrowRight, Calendar, Clock, ArrowUpRight } from "lucide-react";
-import { SectionWrapper } from "@/components/layout/SectionWrapper";
-import { SectionHeading } from "@/components/ui/SectionHeading";
+import { SectionDefault } from "@/components/layout/SectionWrapper";
 import type { BlogPostMeta } from "@/lib/blog-shared";
 
 function formatDate(dateStr: string): string {
@@ -15,104 +10,63 @@ function formatDate(dateStr: string): string {
   });
 }
 
-export function BlogSectionClient({ posts }: { posts: BlogPostMeta[] }) {
+function BlogRow({ post }: { post: BlogPostMeta }) {
   return (
-    <SectionWrapper id="blog">
-      <SectionHeading title="Recent writing." />
-
-      <div className="grid md:grid-cols-3 gap-6">
-        {posts.length === 0 ? (
-          <p className="col-span-3 text-center text-text-muted">
-            Posts coming soon.
+    <Link href={`/blog/${post.slug}`} className="group block">
+      <div className="grid grid-cols-12 gap-x-6">
+        <div className="col-span-12 md:col-span-9">
+          <h3 className="font-display font-medium text-[22px] md:text-[26px] leading-[1.2] tracking-[-0.015em] text-ink-900 text-balance group-hover:text-clay-700 transition-colors">
+            {post.title}
+          </h3>
+          <p className="mt-2 font-prose text-[16px] leading-[1.55] text-ink-700 max-w-[64ch]">
+            {post.excerpt}
           </p>
-        ) : (
-          posts.map((post, i) => (
-            <motion.div
-              key={post.id}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.2 }}
-              transition={{ delay: i * 0.1, duration: 0.5 }}
-            >
-              <Link href={`/blog/${post.slug}`} className="group block">
-                <div className="glass-card overflow-hidden transition-all duration-300">
-                  <div className="relative h-24 bg-gradient-to-br from-accent-blue/10 via-accent-purple/10 to-accent-magenta/10 overflow-hidden">
-                    <div
-                      className="absolute inset-0 opacity-50"
-                      style={{
-                        background:
-                          "linear-gradient(135deg, var(--color-glow-blue), var(--color-glow-purple), var(--color-glow-blue))",
-                        animation: "gradientShift 8s ease-in-out infinite",
-                        backgroundSize: "200% 200%",
-                      }}
-                    />
-                    <div className="absolute top-3 right-3">
-                      <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-bg-primary/80 backdrop-blur-sm text-[10px] font-mono tracking-wider text-text-muted border border-border-subtle">
-                        <Clock size={10} />
-                        {post.reading_time}
-                      </span>
-                    </div>
-                    <div className="absolute bottom-3 left-3 flex items-center gap-1.5 text-[10px] font-mono text-text-muted">
-                      <Calendar size={10} />
-                      {formatDate(post.created_at)}
-                    </div>
-                  </div>
+          {post.tags.length > 0 && (
+            <p className="mt-3 smallcaps text-[12px] text-ink-500">
+              {post.tags.join(" · ")}
+            </p>
+          )}
+        </div>
+        <div className="col-span-12 md:col-span-3 md:text-right mt-2 md:mt-1">
+          <p className="smallcaps text-[12px] text-ink-500 tabular leading-snug">
+            {formatDate(post.created_at)}
+          </p>
+          <p className="smallcaps text-[12px] text-ink-400 mt-1 tabular">
+            {post.reading_time}
+          </p>
+        </div>
+      </div>
+    </Link>
+  );
+}
 
-                  <div className="p-6">
-                    <div className="flex items-start justify-between gap-2">
-                      <h3 className="font-display font-bold text-base text-text-primary group-hover:text-accent-blue transition-colors">
-                        {post.title}
-                      </h3>
-                      <ArrowUpRight
-                        size={16}
-                        className="shrink-0 mt-1 text-text-muted group-hover:text-accent-blue group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all"
-                      />
-                    </div>
-                    <p className="mt-2 text-text-muted text-sm leading-relaxed line-clamp-2">
-                      {post.excerpt}
-                    </p>
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {post.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="px-2 py-0.5 text-[10px] font-mono tracking-wider rounded bg-bg-tertiary text-text-muted"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            </motion.div>
-          ))
-        )}
+export function BlogSectionClient({ posts }: { posts: BlogPostMeta[] }) {
+  if (posts.length === 0) return null;
+
+  return (
+    <SectionDefault id="blog">
+      {/* No full heading. Just a smallcaps label in the gutter. */}
+      <div className="grid grid-cols-12 gap-x-6 mb-12">
+        <p className="col-span-12 md:col-span-2 smallcaps text-[12px] text-ink-500 pt-1">
+          Recent
+        </p>
       </div>
 
-      {posts.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.4 }}
-          className="mt-10 text-center"
-        >
-          <Link
-            href="/blog"
-            className="inline-flex items-center gap-2 text-sm font-medium text-accent-blue hover:underline underline-offset-4 transition-colors"
-          >
-            View all posts
-            <ArrowRight size={16} />
-          </Link>
-        </motion.div>
-      )}
+      <div className="space-y-12 md:space-y-14">
+        {posts.map((post) => (
+          <BlogRow key={post.id} post={post} />
+        ))}
+      </div>
 
-      <style>{`
-        @keyframes gradientShift {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-        }
-      `}</style>
-    </SectionWrapper>
+      <div className="mt-14">
+        <Link
+          href="/blog"
+          className="inline-flex items-center gap-2 font-ui text-[14px] text-ink-900 underline decoration-clay-500 decoration-[1.5px] underline-offset-[5px] hover:decoration-ink-blue transition-colors"
+        >
+          All posts
+          <span className="text-clay-500">&rarr;</span>
+        </Link>
+      </div>
+    </SectionDefault>
   );
 }

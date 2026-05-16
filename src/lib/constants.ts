@@ -12,10 +12,9 @@ export const SOCIAL_LINKS = {
 } as const;
 
 export const STATS = [
-  { value: "5", suffix: "M", label: "ARR scaled in 10 months at Leena AI", prefix: "$" },
-  { value: "1.5", suffix: "M", label: "Users on AI products shipped", prefix: "" },
-  { value: "6", suffix: "+", label: "Years shipping AI-first products", prefix: "" },
-  { value: "3.89", suffix: "", label: "GPA at Kellogg (Dean's List)", prefix: "" },
+  { value: "5", suffix: "M", label: "ARR we steered from 0 in 10 months", prefix: "$" },
+  { value: "1.5", suffix: "M", label: "people using AI we had a hand in shipping", prefix: "" },
+  { value: "100+", suffix: "", label: "user interviews before any PRD we write", prefix: "" },
 ] as const;
 
 export const JOURNEY = [

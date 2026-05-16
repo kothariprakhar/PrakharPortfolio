@@ -2,54 +2,71 @@
 
 @theme {
   /* ── Surfaces ── */
-  --color-bg-primary: #FAF8F3;
-  --color-bg-secondary: #F2EEE5;
-  --color-bg-tertiary: #E8E2D4;
+  --color-paper: #F6F2E9;
+  --color-bg-primary: #F6F2E9;
+  --color-bg-secondary: #ECE6D8;
+  --color-bg-tertiary: #DCD6C8;
 
-  /* ── Text ── */
-  --color-text-primary: #1A1815;
-  --color-text-secondary: #4A453D;
-  --color-text-muted: #8A8579;
+  /* ── Inks ── */
+  --color-ink-900: #14110D;
+  --color-ink-700: #2E2A24;
+  --color-ink-500: #5C564C;
+  --color-ink-400: #6F6A5E;
+  --color-ink-300: #B8B2A4;
+  --color-ink-200: #DCD6C8;
+  --color-ink-100: #ECE6D8;
 
-  /* ── Accent (clay family) ──
-     Note: kept legacy variable names (accent-blue/purple/magenta) to avoid mass
-     refactor; all map to the same warm clay family. */
-  --color-accent-blue: #A0522D;     /* primary clay */
-  --color-accent-purple: #7C3F1F;   /* deep clay — gradient pair */
-  --color-accent-magenta: #6B4423;  /* chestnut — third category */
-  --color-node-gold: #9E7B2F;       /* warm bronze — fourth category */
+  /* Legacy aliases (old code paths still resolve while we migrate) */
+  --color-text-primary: #14110D;
+  --color-text-secondary: #2E2A24;
+  --color-text-muted: #6F6A5E;
 
-  --color-glow-blue: rgba(160, 82, 45, 0.15);
-  --color-glow-purple: rgba(124, 63, 31, 0.10);
-  --color-border-subtle: rgba(160, 82, 45, 0.10);
+  /* ── Clay (single accent family) ── */
+  --color-clay-700: #6E3618;
+  --color-clay-500: #A0522D;
+  --color-clay-200: #E8C9B0;
 
-  --font-display: "Space Grotesk", system-ui, sans-serif;
-  --font-body: "Inter", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
+  /* Counter-accent — used sparingly for prose links and focus rings */
+  --color-ink-blue: #2A4A6B;
+
+  /* Legacy accent aliases — temporary, point at clay so existing classNames still build */
+  --color-accent-blue: #A0522D;
+  --color-accent-purple: #6E3618;
+  --color-accent-magenta: #6E3618;
+  --color-node-gold: #6E3618;
+
+  --color-border-subtle: rgba(20, 17, 13, 0.10);
+
+  --font-display: "Fraunces", ui-serif, Georgia, "Times New Roman", serif;
+  --font-ui: "Inter", system-ui, -apple-system, sans-serif;
+  --font-prose: "Newsreader", ui-serif, Georgia, "Times New Roman", serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  /* legacy alias */
+  --font-body: "Inter", system-ui, -apple-system, sans-serif;
 }
 
-/* ── Theme-agnostic CSS custom properties ── */
 :root {
-  --gradient-from: #A0522D;
-  --gradient-to: #7C3F1F;
-  --glow-accent: rgba(160, 82, 45, 0.20);
-  --divider-color: rgba(160, 82, 45, 0.12);
+  --divider-color: rgba(20, 17, 13, 0.12);
 }
 
 html {
   scroll-behavior: smooth;
+  font-feature-settings: "kern" 1, "liga" 1;
 }
 
 body {
-  background: var(--color-bg-primary);
-  color: var(--color-text-primary);
-  font-family: var(--font-body);
+  background: var(--color-paper);
+  color: var(--color-ink-700);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* ── Selection ── */
 ::selection {
-  background: rgba(160, 82, 45, 0.2);
-  color: #1A1815;
+  background: rgba(160, 82, 45, 0.18);
+  color: var(--color-ink-900);
 }
 
 /* ── Scrollbar ── */
@@ -57,33 +74,83 @@ body {
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--color-bg-primary);
+  background: var(--color-paper);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-bg-tertiary);
-  border-radius: 3px;
+  background: var(--color-ink-200);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-accent-blue);
+  background: var(--color-clay-500);
 }
 
 /* ══════════════════════════════════════
-   Cards
+   Focus
    ══════════════════════════════════════ */
-
-.glass-card {
-  background: #F2EEE5;
-  border: 1px solid rgba(160, 82, 45, 0.10);
-  box-shadow: 0 1px 3px rgba(26, 24, 21, 0.04);
-  border-radius: 0.75rem;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
-}
-.glass-card:hover {
-  border-color: rgba(160, 82, 45, 0.22);
-  box-shadow: 0 4px 16px rgba(26, 24, 21, 0.06);
+:focus-visible {
+  outline: 2px solid var(--color-ink-blue);
+  outline-offset: 3px;
+  border-radius: 2px;
 }
 
-/* ── Reduced motion: respect OS preference ── */
+/* ══════════════════════════════════════
+   Micro-typography utilities
+   ══════════════════════════════════════ */
+.tabular { font-variant-numeric: tabular-nums; }
+.oldstyle { font-variant-numeric: oldstyle-nums proportional-nums; }
+.smallcaps {
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.06em;
+  text-transform: lowercase;
+}
+
+/* ══════════════════════════════════════
+   Prose (MDX blog post body)
+   ══════════════════════════════════════ */
+.prose {
+  font-family: var(--font-prose);
+  font-optical-sizing: auto;
+  font-variant-numeric: oldstyle-nums proportional-nums;
+  color: var(--color-ink-700);
+  font-size: 18px;
+  line-height: 1.65;
+  hyphens: auto;
+  text-wrap: pretty;
+  hanging-punctuation: first last;
+}
+.prose h1, .prose h2, .prose h3, .prose h4 {
+  font-family: var(--font-display);
+  color: var(--color-ink-900);
+  text-wrap: balance;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+}
+.prose p > a,
+.prose li > a {
+  color: var(--color-ink-700);
+  text-decoration: underline;
+  text-decoration-color: var(--color-clay-500);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+  transition: text-decoration-color 200ms;
+}
+.prose p > a:hover,
+.prose li > a:hover {
+  text-decoration-color: var(--color-ink-blue);
+}
+
+/* Drop cap on the first paragraph */
+.prose > p:first-of-type::first-letter {
+  font-family: var(--font-display);
+  font-weight: 500;
+  float: left;
+  font-size: 4em;
+  line-height: 0.85;
+  margin-right: 0.08em;
+  padding-top: 0.08em;
+  color: var(--color-ink-900);
+}
+
+/* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

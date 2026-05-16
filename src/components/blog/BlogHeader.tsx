@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { ArrowLeft, Calendar, Clock } from "lucide-react";
 import type { BlogPost } from "@/lib/blog-shared";
 
 function formatDate(dateStr: string): string {
@@ -18,44 +17,36 @@ export function BlogHeader({
   readingTime: string;
 }) {
   return (
-    <header className="mb-12">
+    <header className="mb-14">
       <Link
         href="/blog"
-        className="inline-flex items-center gap-2 text-sm text-text-muted hover:text-accent-blue transition-colors mb-8"
+        className="inline-flex items-center gap-2 font-ui text-[13px] text-ink-500 hover:text-clay-700 transition-colors mb-10"
       >
-        <ArrowLeft size={16} />
-        Back to all posts
+        <span>&larr;</span>
+        All posts
       </Link>
 
-      <div className="flex flex-wrap items-center gap-3 mb-4">
-        {post.tags.map((tag) => (
-          <span
-            key={tag}
-            className="px-3 py-1 text-[11px] font-mono tracking-wider rounded-full bg-accent-blue/10 text-accent-blue border border-accent-blue/20"
-          >
-            {tag}
-          </span>
-        ))}
-      </div>
+      {post.tags.length > 0 && (
+        <p className="smallcaps text-[12px] text-ink-500 mb-6">
+          {post.tags.join(" · ")}
+        </p>
+      )}
 
-      <h1 className="font-display font-bold text-4xl md:text-5xl bg-gradient-to-r from-text-primary to-text-secondary bg-clip-text text-transparent leading-tight">
+      <h1 className="font-display font-medium text-[44px] md:text-[64px] leading-[1.05] tracking-[-0.025em] text-ink-900 text-balance">
         {post.title}
       </h1>
 
-      <p className="mt-4 text-lg text-text-muted">{post.excerpt}</p>
+      <p className="mt-6 font-prose italic text-[20px] md:text-[22px] leading-[1.45] text-ink-500 max-w-[60ch]">
+        {post.excerpt}
+      </p>
 
-      <div className="flex items-center gap-6 mt-6 text-sm text-text-muted">
-        <span className="flex items-center gap-1.5">
-          <Calendar size={14} />
-          {formatDate(post.created_at)}
-        </span>
-        <span className="flex items-center gap-1.5">
-          <Clock size={14} />
-          {readingTime}
-        </span>
-      </div>
+      <p className="mt-8 smallcaps text-[12px] text-ink-500 tabular">
+        {formatDate(post.created_at)}
+        <span className="mx-2 text-ink-300">·</span>
+        {readingTime}
+      </p>
 
-      <div className="h-px bg-gradient-to-r from-accent-blue/30 via-accent-purple/20 to-transparent mt-8" />
+      <div className="mt-10 border-t border-ink-300" />
     </header>
   );
 }

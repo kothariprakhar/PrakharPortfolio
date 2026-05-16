@@ -1,8 +1,4 @@
-"use client";
-
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { Calendar, Clock, ArrowUpRight } from "lucide-react";
 import type { BlogPostMeta } from "@/lib/blog-shared";
 
 function formatDate(dateStr: string): string {
@@ -13,70 +9,36 @@ function formatDate(dateStr: string): string {
   });
 }
 
-export function BlogCard({
-  post,
-  index,
-}: {
-  post: BlogPostMeta;
-  index: number;
-}) {
+/**
+ * Editorial blog row · whitespace-separated list (no hairline between rows).
+ * Date hangs in the right margin like a footnote ref.
+ */
+export function BlogCard({ post }: { post: BlogPostMeta }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.2 }}
-      transition={{ delay: index * 0.1, duration: 0.5 }}
-    >
-      <Link href={`/blog/${post.slug}`} className="group block">
-        <div className="glass-card overflow-hidden transition-all duration-300">
-          <div className="relative h-24 bg-gradient-to-br from-accent-blue/10 via-accent-purple/10 to-accent-magenta/10 overflow-hidden">
-            <div
-              className="absolute inset-0 opacity-50"
-              style={{
-                background:
-                  "linear-gradient(135deg, var(--color-glow-blue), var(--color-glow-purple), var(--color-glow-blue))",
-                animation: "gradientShift 8s ease-in-out infinite",
-                backgroundSize: "200% 200%",
-              }}
-            />
-            <div className="absolute top-3 right-3">
-              <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-bg-primary/80 backdrop-blur-sm text-[10px] font-mono tracking-wider text-text-muted border border-border-subtle">
-                <Clock size={10} />
-                {post.reading_time}
-              </span>
-            </div>
-            <div className="absolute bottom-3 left-3 flex items-center gap-1.5 text-[10px] font-mono text-text-muted">
-              <Calendar size={10} />
-              {formatDate(post.created_at)}
-            </div>
-          </div>
-
-          <div className="p-6">
-            <div className="flex items-start justify-between gap-2">
-              <h3 className="font-display font-bold text-base text-text-primary group-hover:text-accent-blue transition-colors">
-                {post.title}
-              </h3>
-              <ArrowUpRight
-                size={16}
-                className="shrink-0 mt-1 text-text-muted group-hover:text-accent-blue group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all"
-              />
-            </div>
-            <p className="mt-2 text-text-muted text-sm leading-relaxed line-clamp-2">
-              {post.excerpt}
+    <Link href={`/blog/${post.slug}`} className="group block">
+      <div className="grid grid-cols-12 gap-x-6">
+        <div className="col-span-12 md:col-span-9">
+          <h3 className="font-display font-medium text-[24px] md:text-[28px] leading-[1.18] tracking-[-0.015em] text-ink-900 text-balance group-hover:text-clay-700 transition-colors">
+            {post.title}
+          </h3>
+          <p className="mt-3 font-prose text-[17px] leading-[1.55] text-ink-700 max-w-[64ch]">
+            {post.excerpt}
+          </p>
+          {post.tags.length > 0 && (
+            <p className="mt-4 smallcaps text-[12px] text-ink-500">
+              {post.tags.join(" · ")}
             </p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {post.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="px-2 py-0.5 text-[10px] font-mono tracking-wider rounded bg-bg-tertiary text-text-muted"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </div>
+          )}
         </div>
-      </Link>
-    </motion.div>
+        <div className="col-span-12 md:col-span-3 md:text-right mt-3 md:mt-2">
+          <p className="smallcaps text-[12px] text-ink-500 tabular leading-snug">
+            {formatDate(post.created_at)}
+          </p>
+          <p className="smallcaps text-[12px] text-ink-400 mt-1 tabular">
+            {post.reading_time}
+          </p>
+        </div>
+      </div>
+    </Link>
   );
 }

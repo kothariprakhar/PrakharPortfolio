@@ -10,89 +10,104 @@ export default async function Image() {
     (
       <div
         style={{
-          background: "#FAF8F3",
+          background: "#F6F2E9",
           width: "100%",
           height: "100%",
           display: "flex",
           flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
+          justifyContent: "space-between",
+          padding: "72px 96px",
+          fontFamily: "serif",
           position: "relative",
         }}
       >
-        {/* Soft vignette */}
+        {/* Top-left smallcaps label */}
         <div
           style={{
-            position: "absolute",
-            inset: 0,
-            background:
-              "radial-gradient(ellipse at center, transparent 50%, rgba(160,82,45,0.06) 100%)",
-          }}
-        />
-
-        {/* Accent line top */}
-        <div
-          style={{
-            width: 120,
-            height: 2,
-            background: "#A0522D",
-            borderRadius: 1,
-            marginBottom: 32,
-          }}
-        />
-
-        {/* Name */}
-        <div
-          style={{
-            fontSize: 56,
-            fontWeight: 700,
-            color: "#1A1815",
-            letterSpacing: "-0.02em",
-            lineHeight: 1.1,
+            fontSize: 14,
+            color: "#5C564C",
+            letterSpacing: "0.18em",
+            textTransform: "uppercase",
+            fontWeight: 500,
           }}
         >
-          Prakhar Kothari
+          Portfolio
         </div>
 
-        {/* Role */}
+        {/* Hero name + body, left-flush */}
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          <div
+            style={{
+              fontSize: 96,
+              fontWeight: 500,
+              color: "#14110D",
+              letterSpacing: "-0.03em",
+              lineHeight: 1.0,
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "0.25em",
+            }}
+          >
+            <span>Prakhar</span>
+            <span style={{ fontStyle: "italic" }}>Kothari</span>
+          </div>
+
+          <div
+            style={{
+              marginTop: 28,
+              fontSize: 28,
+              fontStyle: "italic",
+              color: "#2E2A24",
+              lineHeight: 1.4,
+              maxWidth: 720,
+              letterSpacing: "-0.005em",
+            }}
+          >
+            Building AI products end-to-end. Kellogg + McCormick, 2026.
+          </div>
+        </div>
+
+        {/* Bottom row: location + URL on left, clay square on right */}
         <div
           style={{
-            marginTop: 16,
-            fontSize: 18,
-            fontWeight: 400,
-            color: "#A0522D",
-            letterSpacing: "0.12em",
-            textTransform: "uppercase" as const,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-end",
           }}
         >
-          AI Product Manager
-        </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div
+              style={{
+                fontSize: 13,
+                color: "#5C564C",
+                letterSpacing: "0.18em",
+                textTransform: "uppercase",
+                fontWeight: 500,
+              }}
+            >
+              Evanston · IL
+            </div>
+            <div
+              style={{
+                fontSize: 13,
+                color: "#5C564C",
+                letterSpacing: "0.06em",
+                fontWeight: 500,
+              }}
+            >
+              prakharkothari.com
+            </div>
+          </div>
 
-        {/* Subtitle */}
-        <div
-          style={{
-            marginTop: 20,
-            fontSize: 16,
-            color: "#4A453D",
-            maxWidth: 500,
-            textAlign: "center" as const,
-            lineHeight: 1.5,
-          }}
-        >
-          Building at the intersection of AI &amp; Product.
-          Kellogg MBA + AI at Northwestern.
+          {/* Single small clay square */}
+          <div
+            style={{
+              width: 10,
+              height: 10,
+              background: "#A0522D",
+            }}
+          />
         </div>
-
-        {/* Accent line bottom */}
-        <div
-          style={{
-            width: 80,
-            height: 1,
-            marginTop: 32,
-            background:
-              "linear-gradient(to right, transparent, rgba(160,82,45,0.4), transparent)",
-          }}
-        />
       </div>
     ),
     { ...size }

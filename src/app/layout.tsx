@@ -1,24 +1,34 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
+import { Fraunces, Inter, Newsreader, JetBrains_Mono } from "next/font/google";
 import { MotionProvider } from "@/components/ui/MotionProvider";
 import "./globals.css";
 
-const spaceGrotesk = Space_Grotesk({
+const fraunces = Fraunces({
   variable: "--font-display",
   subsets: ["latin"],
-  weight: ["500", "700"],
+  style: ["normal", "italic"],
+  display: "swap",
+  axes: ["opsz", "SOFT"],
 });
 
 const inter = Inter({
-  variable: "--font-body",
+  variable: "--font-ui",
   subsets: ["latin"],
-  weight: ["400", "500"],
+  display: "swap",
+});
+
+const newsreader = Newsreader({
+  variable: "--font-prose",
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  display: "swap",
+  axes: ["opsz"],
 });
 
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-mono",
   subsets: ["latin"],
-  weight: ["400"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -42,9 +52,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable} antialiased`}
+      className={`${fraunces.variable} ${inter.variable} ${newsreader.variable} ${jetbrainsMono.variable} antialiased`}
     >
-      <body className="min-h-screen bg-bg-primary text-text-primary font-body">
+      <body className="min-h-screen bg-paper text-ink-700 overflow-x-hidden">
         <MotionProvider>{children}</MotionProvider>
         <script
           type="application/ld+json"

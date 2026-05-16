@@ -48,14 +48,17 @@ export default async function BlogPostPage({
   const readingTime = estimateReadingTime(post.content);
 
   return (
-    <div className="min-h-screen bg-bg-primary">
-      <div className="max-w-[720px] mx-auto px-6 pt-28 pb-20">
+    <div className="min-h-screen bg-paper">
+      {/* Expanded container leaves room for right-margin sidenotes on xl+ */}
+      <div className="max-w-[720px] xl:max-w-[940px] mx-auto px-5 md:px-8 pt-28 pb-24">
         <BlogHeader post={post} readingTime={readingTime} />
-        <MDXContent source={post.content} />
-        <footer className="mt-16 pt-8 border-t border-border-subtle">
+        <div className="xl:pr-[220px]">
+          <MDXContent source={post.content} />
+        </div>
+        <footer className="mt-20 pt-8 border-t border-ink-300">
           <Link
             href="/blog"
-            className="text-sm text-accent-blue hover:underline underline-offset-4"
+            className="font-ui text-[13px] text-ink-700 hover:text-clay-700 transition-colors underline decoration-clay-500 decoration-[1.5px] underline-offset-[5px]"
           >
             &larr; All posts
           </Link>

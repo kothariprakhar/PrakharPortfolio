@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { BlogCard } from "@/components/blog/BlogCard";
 import { getAllPosts } from "@/lib/blog";
 
@@ -15,37 +14,35 @@ export default async function BlogPage() {
   const posts = await getAllPosts();
 
   return (
-    <div className="min-h-screen bg-bg-primary relative">
-      {/* Top nav */}
-      <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-6 py-5">
+    <div className="min-h-screen bg-paper relative">
+      <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-5 md:px-8 py-5">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-sm text-text-muted hover:text-accent-blue transition-colors"
+          className="font-ui text-[13px] text-ink-500 hover:text-clay-700 transition-colors"
         >
-          <ArrowLeft size={16} />
-          Back to portfolio
+          &larr; Back to portfolio
         </Link>
       </div>
 
-      <div className="max-w-[1000px] mx-auto px-6 pt-28 pb-20">
-        <div className="mb-12">
-          <div className="mb-6 flex items-center gap-3">
-            <span className="h-[1px] w-10 bg-accent-blue/60" />
-            <span className="font-mono text-[10px] tracking-[0.2em] text-text-muted uppercase">
-              Writing
-            </span>
-          </div>
-          <h1 className="font-display font-bold text-3xl md:text-[2.5rem] tracking-tight text-text-primary leading-tight">
+      <div className="max-w-[920px] mx-auto px-5 md:px-8 pt-32 pb-24">
+        <header className="mb-20 md:mb-28">
+          <p className="smallcaps text-[12px] text-ink-500 mb-6">
+            Writing · since 2026
+          </p>
+          <h1
+            className="font-display font-medium text-[72px] md:text-[112px] leading-[0.95] tracking-[-0.04em] text-ink-900 text-balance"
+            style={{ fontFeatureSettings: '"ss01", "kern", "liga"' }}
+          >
             Notes on what I&rsquo;m learning.
           </h1>
-        </div>
+        </header>
 
         {posts.length === 0 ? (
-          <p className="text-text-muted">No posts yet.</p>
+          <p className="font-prose text-ink-500">No posts yet.</p>
         ) : (
-          <div className="grid md:grid-cols-2 gap-6">
-            {posts.map((post, i) => (
-              <BlogCard key={post.id} post={post} index={i} />
+          <div className="space-y-14 md:space-y-16 pb-10 border-b border-ink-300">
+            {posts.map((post) => (
+              <BlogCard key={post.id} post={post} />
             ))}
           </div>
         )}

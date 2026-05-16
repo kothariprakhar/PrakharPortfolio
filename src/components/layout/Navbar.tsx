@@ -3,35 +3,32 @@
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Download } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import { NAV_LINKS, SOCIAL_LINKS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-import { useSpacetimeWarp } from "@/components/background/useSpacetimeWarp";
-import { MagneticButton } from "@/components/ui/MagneticButton";
 
-function NavLink({ href, label, isActive }: { href: string; label: string; isActive: boolean }) {
-  const { ref, onMouseEnter, onMouseLeave } = useSpacetimeWarp(`nav-${label}`, {
-    strength: 12,
-    radius: 120,
-  });
-
+function NavLink({
+  href,
+  label,
+  isActive,
+}: {
+  href: string;
+  label: string;
+  isActive: boolean;
+}) {
   return (
     <Link
-      ref={ref as React.Ref<HTMLAnchorElement>}
       href={href}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
       className={cn(
-        "relative text-sm font-body font-medium transition-colors duration-200",
-        isActive ? "text-text-primary" : "text-text-secondary hover:text-text-primary"
+        "relative font-ui text-[13px] transition-colors duration-200",
+        isActive ? "text-ink-900" : "text-ink-500 hover:text-ink-900",
       )}
     >
       {label}
       <span
         className={cn(
-          "absolute -bottom-1 left-0 h-[2px] bg-accent-blue transition-all duration-300",
-          isActive ? "w-full" : "w-0"
+          "absolute -bottom-1 left-0 h-[1.5px] bg-clay-500 transition-all duration-300",
+          isActive ? "w-full" : "w-0",
         )}
       />
     </Link>
@@ -62,7 +59,7 @@ export function Navbar() {
         ([entry]) => {
           if (entry.isIntersecting) setActiveSection(href);
         },
-        { rootMargin: "-40% 0px -55% 0px" }
+        { rootMargin: "-40% 0px -55% 0px" },
       );
       observer.observe(el);
       observers.push(observer);
@@ -72,108 +69,104 @@ export function Navbar() {
 
   return (
     <>
-      <motion.nav
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
+      <nav
         className={cn(
-          "fixed top-0 left-0 right-0 z-50 h-[72px] flex items-center transition-all duration-300",
-          scrolled
-            ? "bg-bg-primary/80 backdrop-blur-xl border-b border-border-subtle"
-            : "bg-transparent"
+          "fixed top-0 left-0 right-0 z-50 h-[64px] flex items-center transition-colors duration-200",
+          scrolled ? "bg-paper border-b border-ink-200" : "bg-transparent",
         )}
       >
-        <div className="w-full max-w-[1200px] mx-auto px-6 flex items-center justify-between">
-          {/* Logo */}
+        <div className="w-full max-w-[1200px] mx-auto px-5 md:px-8 flex items-center justify-between">
           <Link
             href="/"
-            className="font-display font-bold text-xl bg-gradient-to-r from-accent-blue to-accent-purple bg-clip-text text-transparent"
+            className="font-display italic font-medium text-[18px] text-ink-900 tracking-[-0.01em]"
           >
             Prakhar Kothari
           </Link>
 
-          {/* Desktop links */}
           <div className="hidden md:flex items-center gap-8">
             {NAV_LINKS.map(({ label, href }) => {
               const resolvedHref = href.startsWith("#") && !isHome ? `/${href}` : href;
-              const isActive = href.startsWith("#") ? activeSection === href : pathname.startsWith(href);
+              const isActive = href.startsWith("#")
+                ? activeSection === href
+                : pathname.startsWith(href);
               return (
-                <NavLink key={href} href={resolvedHref} label={label} isActive={isActive} />
+                <NavLink
+                  key={href}
+                  href={resolvedHref}
+                  label={label}
+                  isActive={isActive}
+                />
               );
             })}
           </div>
 
-          {/* CTA */}
           <div className="hidden md:flex items-center">
-            <MagneticButton
-              as="a"
+            <a
               href={SOCIAL_LINKS.resume}
-              warpId="nav-cta"
-              warpStrength={18}
-              warpRadius={150}
-              magnetStrength={0.25}
-              className="inline-flex items-center gap-1.5 px-5 py-2 text-sm font-medium rounded-full border border-accent-blue/40 text-accent-blue hover:bg-accent-blue/10 transition-all duration-300"
+              className="font-ui text-[13px] text-ink-700 hover:text-clay-700 transition-colors"
             >
-              <Download size={14} />
-              Resume
-            </MagneticButton>
+              Résumé&nbsp;<span className="text-clay-500">&darr;</span>
+            </a>
           </div>
 
-          {/* Mobile toggle */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="md:hidden text-text-primary p-2"
+            className="md:hidden text-ink-900 p-2 font-mono text-[12px]"
             aria-label="Toggle menu"
           >
-            {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+            {mobileOpen ? "Close" : "Menu"}
           </button>
         </div>
-      </motion.nav>
+      </nav>
 
-      {/* Mobile overlay */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-bg-primary/95 backdrop-blur-xl flex items-center justify-center"
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-40 bg-paper flex flex-col px-6 pt-24 pb-10"
           >
-            <nav className="flex flex-col items-center gap-8">
-              {NAV_LINKS.map(({ label, href }, i) => {
+            <p className="smallcaps text-[12px] text-ink-500 mb-8">Menu</p>
+            <nav className="flex flex-col items-start gap-5">
+              {NAV_LINKS.map(({ label, href }) => {
                 const resolvedHref = href.startsWith("#") && !isHome ? `/${href}` : href;
                 return (
-                  <motion.div
+                  <Link
                     key={href}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.1 }}
+                    href={resolvedHref}
+                    onClick={() => setMobileOpen(false)}
+                    className="font-display text-[32px] text-ink-900 tracking-[-0.02em]"
                   >
-                    <Link
-                      href={resolvedHref}
-                      onClick={() => setMobileOpen(false)}
-                      className="text-2xl font-display font-bold text-text-primary hover:text-accent-blue transition-colors"
-                    >
-                      {label}
-                    </Link>
-                  </motion.div>
+                    {label}
+                  </Link>
                 );
               })}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: NAV_LINKS.length * 0.1 }}
+              <Link
+                href={SOCIAL_LINKS.resume}
+                onClick={() => setMobileOpen(false)}
+                className="mt-2 font-ui text-[15px] text-ink-700 underline decoration-clay-500 decoration-[1.5px] underline-offset-[5px]"
               >
-                <Link
-                  href={SOCIAL_LINKS.resume}
-                  onClick={() => setMobileOpen(false)}
-                  className="mt-2 inline-flex items-center gap-2 px-8 py-3 rounded-full bg-accent-blue text-white font-medium"
-                >
-                  <Download size={16} />
-                  Resume
-                </Link>
-              </motion.div>
+                Résumé
+              </Link>
+              <Link
+                href="/colophon"
+                onClick={() => setMobileOpen(false)}
+                className="smallcaps text-[12px] text-ink-500"
+              >
+                Colophon
+              </Link>
             </nav>
+            <div className="mt-auto pt-6 border-t border-ink-200">
+              <a
+                href={`mailto:${SOCIAL_LINKS.email}`}
+                onClick={() => setMobileOpen(false)}
+                className="font-mono text-[12px] text-ink-700 tracking-[0.02em] underline decoration-clay-500 decoration-[1.5px] underline-offset-[4px]"
+              >
+                {SOCIAL_LINKS.email}
+              </a>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

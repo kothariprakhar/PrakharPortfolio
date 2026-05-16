@@ -2,154 +2,116 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, MapPin } from "lucide-react";
-import { SectionWrapper } from "@/components/layout/SectionWrapper";
-import { SectionHeading } from "@/components/ui/SectionHeading";
+import { SectionDefault } from "@/components/layout/SectionWrapper";
+import { SectionTitleSerif } from "@/components/ui/SectionHeading";
 import { EXPERIENCE } from "@/lib/constants";
-import { cn } from "@/lib/utils";
-import { useSpacetimeWarp } from "@/components/background/useSpacetimeWarp";
 
-function TimelineItem({
-  item,
-  index,
-  isLeft,
-}: {
-  item: (typeof EXPERIENCE)[number];
-  index: number;
-  isLeft: boolean;
-}) {
+function startYear(period: string): string {
+  const m = period.match(/\d{4}/);
+  return m ? m[0] : "";
+}
+
+function ExperienceRow({ item }: { item: (typeof EXPERIENCE)[number] }) {
   const [expanded, setExpanded] = useState(false);
-  const { ref: warpRef, onMouseEnter, onMouseLeave } = useSpacetimeWarp(`exp-${item.id}`, {
-    strength: 20,
-    radius: 200,
-  });
 
   return (
-    <motion.div
-      ref={warpRef as React.Ref<HTMLDivElement>}
-      initial={{ opacity: 0, x: isLeft ? -40 : 40 }}
-      whileInView={{ opacity: 1, x: 0 }}
-      viewport={{ once: true, amount: 0.2 }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
-      className={cn(
-        "relative md:w-[calc(50%-32px)]",
-        isLeft ? "md:mr-auto md:pr-0" : "md:ml-auto md:pl-0"
-      )}
-    >
-      {/* Timeline node — desktop */}
-      <div
-        className={cn(
-          "hidden md:block absolute top-8 w-2.5 h-2.5 rounded-full bg-accent-blue ring-4 ring-bg-primary",
-          isLeft ? "-right-[37px]" : "-left-[37px]"
-        )}
-      />
-
-      {/* Mobile node */}
-      <div className="md:hidden absolute left-0 top-8 w-2.5 h-2.5 rounded-full bg-accent-blue" />
-
-      <div
-        className={cn(
-          "ml-8 md:ml-0 glass-card p-6 transition-all duration-300 cursor-pointer",
-          expanded && "border-accent-blue/20"
-        )}
-        onClick={() => setExpanded(!expanded)}
+    <article className="relative pl-0 md:pl-[88px] py-8 md:py-10">
+      {/* Year hangs in the left gutter as a marginal label, spine-aligned */}
+      <span
+        aria-hidden
+        className="hidden md:block absolute left-0 top-[2.1rem] smallcaps text-[12px] text-ink-500 tabular tracking-[0.08em]"
       >
-        <div className="flex items-center gap-2 mb-1">
-          <span className="font-mono text-[11px] tracking-wider text-accent-blue uppercase">
-            {item.period}
-          </span>
-          <span className="text-text-muted text-xs flex items-center gap-1">
-            <MapPin size={10} /> {item.location}
-          </span>
-        </div>
+        {startYear(item.period)}
+      </span>
 
-        <h3 className="font-display font-bold text-lg text-text-primary mt-2">
-          {item.role}
-        </h3>
-        <p className="text-text-secondary text-sm mt-1">{item.companyShort}</p>
-        {"contextNote" in item && item.contextNote && (
-          <p className="mt-2 inline-flex items-start gap-1.5 text-[11px] font-mono tracking-wider text-text-muted italic leading-snug">
-            <span className="text-accent-blue/60 not-italic">※</span>
-            {item.contextNote}
-          </p>
-        )}
-        <p className="text-text-muted text-sm mt-3 leading-relaxed">{item.summary}</p>
+      <p className="md:hidden smallcaps text-[12px] text-ink-500 tabular mb-2">
+        {item.period} · {item.location}
+      </p>
 
-        <button
-          className="mt-4 flex items-center gap-1 text-accent-blue text-xs font-mono tracking-wider uppercase"
-          aria-label={expanded ? "Collapse details" : "Expand details"}
-        >
+      <h3 className="font-display font-medium text-[22px] md:text-[24px] leading-[1.2] tracking-[-0.015em] text-ink-900 text-balance">
+        {item.role}
+      </h3>
+      <p className="mt-1 font-prose italic text-[16px] text-ink-500">
+        {item.companyShort}
+        <span className="hidden md:inline text-ink-300"> · </span>
+        <span className="hidden md:inline smallcaps text-[11px] text-ink-400 tabular not-italic">
+          {item.period}, {item.location}
+        </span>
+      </p>
+
+      {"contextNote" in item && item.contextNote && (
+        <p className="mt-3 font-prose italic text-[14px] text-ink-400 leading-snug">
+          {item.contextNote}
+        </p>
+      )}
+
+      <p className="mt-4 font-prose text-[16px] leading-[1.6] text-ink-700 max-w-[64ch]">
+        {item.summary}
+      </p>
+
+      <button
+        type="button"
+        onClick={() => setExpanded(!expanded)}
+        className="mt-5 inline-flex items-center gap-2 font-ui text-[13px] text-ink-700 hover:text-clay-700 transition-colors"
+        aria-expanded={expanded}
+      >
+        <span className="underline decoration-clay-500 decoration-[1.5px] underline-offset-[4px]">
           {expanded ? "Less" : "More"}
-          <motion.span
-            animate={{ rotate: expanded ? 180 : 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            <ChevronDown size={14} />
-          </motion.span>
-        </button>
+        </span>
+        <span
+          className="text-clay-500 transition-transform duration-200"
+          style={{ transform: expanded ? "rotate(90deg)" : "none" }}
+          aria-hidden
+        >
+          &rarr;
+        </span>
+      </button>
 
-        <AnimatePresence>
-          {expanded && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="overflow-hidden"
-            >
-              <ul className="mt-4 space-y-2 border-t border-border-subtle pt-4">
-                {item.details.map((detail, i) => (
-                  <li
-                    key={i}
-                    className="text-text-secondary text-sm leading-relaxed pl-4 relative before:absolute before:left-0 before:top-2 before:w-1.5 before:h-1.5 before:rounded-full before:bg-accent-blue/40"
-                  >
-                    {detail}
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {item.technologies.map((tech) => (
-                  <span
-                    key={tech}
-                    className="px-3 py-1 text-[11px] font-mono tracking-wider rounded-full bg-accent-blue/10 text-accent-blue border border-accent-blue/20"
-                  >
-                    {tech}
+      <AnimatePresence initial={false}>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="overflow-hidden"
+          >
+            <ul className="mt-5 space-y-2.5 max-w-[64ch]">
+              {item.details.map((detail, i) => (
+                <li
+                  key={i}
+                  className="font-prose text-[15px] leading-[1.55] text-ink-700 pl-5 relative"
+                >
+                  <span className="absolute left-0 top-[0.5em] text-clay-500" aria-hidden>
+                    ·
                   </span>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </motion.div>
+                  {detail}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-4 font-mono text-[11px] text-ink-500 tracking-[0.04em]">
+              {item.technologies.join(" · ")}
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </article>
   );
 }
 
 export function Experience() {
   return (
-    <SectionWrapper id="experience">
-      <SectionHeading title="Where I've shipped — and what I learned doing it." />
+    <SectionDefault id="experience">
+      <SectionTitleSerif>
+        Where I&rsquo;ve shipped, and what I learned doing it.
+      </SectionTitleSerif>
 
-      <div className="relative">
-        {/* Quiet vertical timeline spine — desktop */}
-        <div className="hidden md:block absolute left-1/2 -translate-x-1/2 top-2 bottom-2 w-[1px] bg-border-subtle" />
-
-        {/* Mobile timeline spine */}
-        <div className="md:hidden absolute left-[5px] top-2 bottom-2 w-[1px] bg-border-subtle" />
-
-        <div className="flex flex-col gap-8 md:gap-12">
-          {EXPERIENCE.map((item, i) => (
-            <TimelineItem
-              key={item.id}
-              item={item}
-              index={i}
-              isLeft={i % 2 === 0}
-            />
-          ))}
-        </div>
+      {/* Single vertical spine on md+; rows are full-bleed (no border between them) */}
+      <div className="relative md:before:absolute md:before:top-2 md:before:bottom-2 md:before:left-[64px] md:before:w-px md:before:bg-ink-200 md:before:content-['']">
+        {EXPERIENCE.map((item) => (
+          <ExperienceRow key={item.id} item={item} />
+        ))}
       </div>
-    </SectionWrapper>
+    </SectionDefault>
   );
 }

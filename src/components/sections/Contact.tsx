@@ -1,124 +1,51 @@
-"use client";
-
-import { motion } from "framer-motion";
-import { Mail, MapPin, ArrowUpRight } from "lucide-react";
-import { LinkedInIcon, GitHubIcon } from "@/components/ui/SocialIcons";
-import { SectionWrapper } from "@/components/layout/SectionWrapper";
-import { SectionHeading } from "@/components/ui/SectionHeading";
+import { SectionTight } from "@/components/layout/SectionWrapper";
 import { SOCIAL_LINKS } from "@/lib/constants";
 
-const contacts = [
-  {
-    icon: Mail,
-    label: "Email",
-    value: SOCIAL_LINKS.email,
-    href: `mailto:${SOCIAL_LINKS.email}`,
-    hoverColor: "hover:text-accent-blue",
-    isLucide: true,
-  },
-  {
-    icon: LinkedInIcon,
-    label: "LinkedIn",
-    value: "Prakhar Kothari",
-    href: SOCIAL_LINKS.linkedin,
-    hoverColor: "hover:text-[#0A66C2]",
-    isLucide: false,
-  },
-  {
-    icon: GitHubIcon,
-    label: "GitHub",
-    value: "prakharkothari",
-    href: SOCIAL_LINKS.github,
-    hoverColor: "hover:text-text-primary",
-    isLucide: false,
-  },
-  {
-    icon: MapPin,
-    label: "Location",
-    value: "Evanston, IL",
-    href: null,
-    hoverColor: "",
-    isLucide: true,
-  },
-];
-
+/**
+ * Contact · a single typographic statement, not a key/value list.
+ * The sentence is the page. Names are the links.
+ */
 export function Contact() {
   return (
-    <SectionWrapper id="contact" className="pb-16 md:pb-24">
-      <SectionHeading title="Let's talk." />
+    <SectionTight id="contact">
+      <p className="smallcaps text-[12px] text-ink-500 mb-10">Contact</p>
 
-      <div className="grid md:grid-cols-2 gap-12">
-        {/* Contact info */}
-        <div className="space-y-6">
-          {contacts.map((contact, i) => {
-            const Icon = contact.icon;
-            const isLink = !!contact.href;
-            const Tag = isLink ? "a" : "div";
-            const linkProps = isLink
-              ? {
-                  href: contact.href!,
-                  ...(contact.href!.startsWith("http")
-                    ? { target: "_blank" as const, rel: "noopener noreferrer" }
-                    : {}),
-                }
-              : {};
-
-            return (
-              <motion.div
-                key={contact.label}
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-              >
-                <Tag
-                  {...linkProps}
-                  className={`flex items-center gap-4 group ${contact.hoverColor} text-text-secondary transition-colors duration-200`}
-                >
-                  <div className="w-12 h-12 rounded-xl bg-bg-tertiary/50 border border-border-subtle flex items-center justify-center group-hover:border-accent-blue/30 transition-colors">
-                    <Icon size={20} />
-                  </div>
-                  <div>
-                    <p className="text-text-muted text-xs font-mono tracking-wider uppercase">
-                      {contact.label}
-                    </p>
-                    <p className="text-sm font-medium mt-0.5 flex items-center gap-1">
-                      {contact.value}
-                      {isLink && (
-                        <ArrowUpRight
-                          size={12}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity"
-                        />
-                      )}
-                    </p>
-                  </div>
-                </Tag>
-              </motion.div>
-            );
-          })}
-        </div>
-
-        {/* CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.3 }}
-          className="flex flex-col items-start justify-center"
+      <p className="font-display font-medium text-ink-900 text-[28px] md:text-[44px] leading-[1.18] tracking-[-0.02em] text-balance max-w-[22ch]">
+        Best place to find me is{" "}
+        <a
+          href={`mailto:${SOCIAL_LINKS.email}`}
+          className="italic underline decoration-clay-500 decoration-[2px] underline-offset-[6px] hover:decoration-ink-blue transition-colors"
         >
-          <p className="text-text-secondary text-lg leading-relaxed mb-8">
-            I&apos;m always open to discussing new opportunities, interesting projects, or just
-            exchanging ideas about the future of AI and product.
-          </p>
-          <a
-            href={`mailto:${SOCIAL_LINKS.email}`}
-            className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-gradient-to-r from-accent-blue to-accent-purple text-white font-medium hover:shadow-[0_0_40px_var(--glow-accent)] transition-shadow duration-300"
-          >
-            <Mail size={18} />
-            Send me an email
-          </a>
-        </motion.div>
-      </div>
-    </SectionWrapper>
+          over email
+        </a>
+        .
+      </p>
+
+      <p className="mt-10 font-prose text-[18px] leading-[1.6] text-ink-700 max-w-[52ch]">
+        Otherwise I&rsquo;m on{" "}
+        <a
+          href={SOCIAL_LINKS.linkedin}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline decoration-clay-500 decoration-[1.5px] underline-offset-[4px] hover:decoration-ink-blue transition-colors"
+        >
+          LinkedIn
+        </a>{" "}
+        and shipping things on{" "}
+        <a
+          href={SOCIAL_LINKS.github}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline decoration-clay-500 decoration-[1.5px] underline-offset-[4px] hover:decoration-ink-blue transition-colors"
+        >
+          GitHub
+        </a>
+        . Roles, projects, or just exchanging ideas about AI and product · all welcome.
+      </p>
+
+      <p className="mt-12 smallcaps text-[12px] text-ink-500 tabular">
+        Evanston, Illinois · Open to AI / PM roles, Summer 2026
+      </p>
+    </SectionTight>
   );
 }

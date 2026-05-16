@@ -1,25 +1,10 @@
-"use client";
-
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, ChevronLeft, ExternalLink, Code2 } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { ScrollProgress } from "@/components/ui/ScrollProgress";
 import type { PROJECTS } from "@/lib/constants";
 
 type Project = (typeof PROJECTS)[number];
-
-const typeColors: Record<string, string> = {
-  AI: "bg-accent-blue/10 text-accent-blue border-accent-blue/20",
-  Product: "bg-accent-purple/10 text-accent-purple border-accent-purple/20",
-  Engineering: "bg-accent-magenta/10 text-accent-magenta border-accent-magenta/20",
-};
-
-const sectionVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" as const } },
-};
 
 export function CaseStudyContent({
   project,
@@ -37,53 +22,38 @@ export function CaseStudyContent({
       <ScrollProgress />
       <Navbar />
 
-      <main className="relative z-10 pt-24 pb-20 px-4 md:px-6">
-        <div className="max-w-[800px] mx-auto">
-          {/* Back link */}
-          <motion.div
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3 }}
+      <main className="relative z-10 pt-28 pb-20 px-5 md:px-8">
+        <div className="max-w-[820px] mx-auto">
+          <Link
+            href="/#projects"
+            className="inline-flex items-center gap-2 font-ui text-[13px] text-ink-500 hover:text-clay-700 transition-colors mb-10"
           >
-            <Link
-              href="/#projects"
-              className="inline-flex items-center gap-1 text-text-muted text-sm font-mono tracking-wider hover:text-accent-blue transition-colors mb-8"
-            >
-              <ChevronLeft size={14} />
-              Back to Projects
-            </Link>
-          </motion.div>
+            <span>&larr;</span> Back to projects
+          </Link>
 
-          {/* Hero */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-          >
-            <span
-              className={`inline-block px-3 py-1 text-[11px] font-mono tracking-wider rounded-full border ${typeColors[project.type]}`}
-            >
+          {/* Header */}
+          <header>
+            <p className="smallcaps text-[12px] text-ink-500 mb-5">
               {project.type}
-            </span>
-
-            <h1 className="mt-4 font-display font-bold text-3xl md:text-5xl leading-tight tracking-tight text-text-primary">
+            </p>
+            <h1 className="font-display font-medium text-[40px] md:text-[56px] leading-[1.05] tracking-[-0.025em] text-ink-900 text-balance">
               {project.title}
             </h1>
+            <p className="mt-4 font-prose italic text-[19px] text-ink-500 max-w-[60ch]">
+              {project.subtitle}
+            </p>
 
-            <p className="mt-3 text-text-secondary text-lg">{project.subtitle}</p>
-
-            {/* Live / GitHub links */}
-            {"liveUrl" in project || "githubUrl" in project ? (
-              <div className="mt-5 flex items-center gap-3">
+            {("liveUrl" in project && project.liveUrl) ||
+            ("githubUrl" in project && project.githubUrl) ? (
+              <div className="mt-6 flex items-center gap-6 font-ui text-[14px]">
                 {"liveUrl" in project && project.liveUrl && (
                   <a
                     href={project.liveUrl as string}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-mono tracking-wider rounded-full bg-accent-blue/10 text-accent-blue border border-accent-blue/20 hover:bg-accent-blue/20 transition-colors"
+                    className="text-ink-900 underline decoration-clay-500 decoration-[1.5px] underline-offset-[5px] hover:decoration-ink-blue transition-colors"
                   >
-                    <ExternalLink size={12} />
-                    Live Demo
+                    Live demo &rarr;
                   </a>
                 )}
                 {"githubUrl" in project && project.githubUrl && (
@@ -91,159 +61,96 @@ export function CaseStudyContent({
                     href={project.githubUrl as string}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-mono tracking-wider rounded-full bg-bg-secondary text-text-secondary border border-border-subtle hover:text-accent-blue hover:border-accent-blue/30 transition-colors"
+                    className="text-ink-900 underline decoration-clay-500 decoration-[1.5px] underline-offset-[5px] hover:decoration-ink-blue transition-colors"
                   >
-                    <Code2 size={12} />
-                    GitHub
+                    GitHub &rarr;
                   </a>
                 )}
               </div>
             ) : null}
-          </motion.div>
+          </header>
 
-          {/* Hero Metrics */}
+          {/* Hero metrics */}
           {cs && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.25 }}
-              className="mt-10 grid grid-cols-3 gap-4"
-            >
+            <div className="mt-12 grid grid-cols-3 gap-x-6 border-t border-ink-300 pt-6">
               {cs.heroMetrics.map((m, i) => (
-                <div
-                  key={i}
-                  className="glass-card p-5 text-center"
-                >
-                  <div className="font-display font-bold text-2xl md:text-3xl bg-gradient-to-r from-accent-blue to-accent-purple bg-clip-text text-transparent">
+                <div key={i}>
+                  <div className="font-display font-medium text-[32px] md:text-[40px] leading-none text-ink-900 tabular tracking-[-0.02em]">
                     {m.value}
                   </div>
-                  <div className="mt-1 text-text-muted text-xs font-mono tracking-wider uppercase">
+                  <div className="mt-2 smallcaps text-[11px] text-ink-500 leading-tight">
                     {m.label}
                   </div>
                 </div>
               ))}
-            </motion.div>
+            </div>
           )}
 
-          {/* Divider */}
-          <div
-            className="my-12 h-[1px] w-full"
-            style={{
-              background:
-                "linear-gradient(to right, transparent, var(--divider-color), transparent)",
-            }}
-          />
+          <div className="my-14 border-t border-ink-300" />
 
           {/* Sections */}
           {cs?.sections.map((section, i) => (
-            <motion.section
-              key={i}
-              variants={sectionVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.2 }}
-              className="mb-12"
-            >
-              <h2 className="font-mono text-xs tracking-[0.12em] text-accent-blue uppercase mb-4">
+            <section key={i} className="mb-12">
+              <h2 className="smallcaps text-[12px] text-ink-500 mb-4">
                 {section.heading}
               </h2>
-
-              <p className="text-text-secondary leading-relaxed">{section.content}</p>
+              <p className="font-prose text-[18px] leading-[1.65] text-ink-700">
+                {section.content}
+              </p>
 
               {section.bullets && (
-                <ul className="mt-4 space-y-2">
+                <ul className="mt-5 space-y-2 max-w-[64ch]">
                   {section.bullets.map((bullet, j) => (
                     <li
                       key={j}
-                      className="text-text-secondary text-sm leading-relaxed pl-5 relative before:absolute before:left-0 before:top-2 before:w-1.5 before:h-1.5 before:rounded-full before:bg-accent-blue/40"
+                      className="font-prose text-[16px] leading-[1.55] text-ink-700 pl-5 relative"
                     >
+                      <span className="absolute left-0 top-[0.5em] text-clay-500" aria-hidden>·</span>
                       {bullet}
                     </li>
                   ))}
                 </ul>
               )}
 
-              {/* Inline metrics grid */}
-              {"metrics" in section && section.metrics && (
-                <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {section.metrics.map((m: { value: string; label: string }, j: number) => (
-                    <div key={j} className="glass-card p-4 text-center">
-                      <div className="font-display font-bold text-xl text-text-primary">
-                        {m.value}
-                      </div>
-                      <div className="mt-1 text-text-muted text-[10px] font-mono tracking-wider uppercase leading-tight">
-                        {m.label}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </motion.section>
+              {/* Inline metric grids removed · hero metrics row at top is the single scannable strip.
+                  In-body figures are folded into prose with typographic emphasis. */}
+            </section>
           ))}
 
           {/* Technologies */}
-          <div className="mb-12">
-            <h2 className="font-mono text-xs tracking-[0.12em] text-text-muted uppercase mb-4">
+          <div className="mb-12 mt-14 border-t border-ink-300 pt-6">
+            <h2 className="smallcaps text-[12px] text-ink-500 mb-3">
               Technologies
             </h2>
-            <div className="flex flex-wrap gap-2">
-              {project.technologies.map((tech) => (
-                <span
-                  key={tech}
-                  className="px-3 py-1 text-[11px] font-mono tracking-wider rounded-full bg-accent-blue/10 text-accent-blue border border-accent-blue/20"
-                >
-                  {tech}
-                </span>
-              ))}
-            </div>
+            <p className="font-mono text-[12px] tracking-[0.04em] text-ink-700 uppercase">
+              {project.technologies.join(" · ")}
+            </p>
           </div>
 
-          {/* Divider */}
-          <div
-            className="my-8 h-[1px] w-full"
-            style={{
-              background:
-                "linear-gradient(to right, transparent, var(--divider-color), transparent)",
-            }}
-          />
-
-          {/* Prev / Next navigation */}
-          <div className="flex items-center justify-between">
+          {/* Prev / Next */}
+          <div className="flex items-center justify-between border-t border-ink-300 pt-8 gap-6">
             {prevProject ? (
               <Link
                 href={`/projects/${prevProject.id}`}
-                className="group flex items-center gap-2 text-text-muted hover:text-accent-blue transition-colors"
+                className="group max-w-[40%]"
               >
-                <ArrowLeft
-                  size={16}
-                  className="group-hover:-translate-x-1 transition-transform"
-                />
-                <div>
-                  <div className="text-[10px] font-mono tracking-wider uppercase">Previous</div>
-                  <div className="text-sm font-medium text-text-secondary group-hover:text-accent-blue transition-colors">
-                    {prevProject.title}
-                  </div>
+                <div className="smallcaps text-[11px] text-ink-500 mb-1">Previous</div>
+                <div className="font-display text-[16px] text-ink-700 group-hover:text-clay-700 transition-colors">
+                  &larr; {prevProject.title}
                 </div>
               </Link>
             ) : (
               <div />
             )}
-
             {nextProject ? (
               <Link
                 href={`/projects/${nextProject.id}`}
-                className="group flex items-center gap-2 text-right text-text-muted hover:text-accent-blue transition-colors"
+                className="group max-w-[40%] text-right ml-auto"
               >
-                <div>
-                  <div className="text-[10px] font-mono tracking-wider uppercase">Next</div>
-                  <div className="text-sm font-medium text-text-secondary group-hover:text-accent-blue transition-colors">
-                    {nextProject.title}
-                  </div>
+                <div className="smallcaps text-[11px] text-ink-500 mb-1">Next</div>
+                <div className="font-display text-[16px] text-ink-700 group-hover:text-clay-700 transition-colors">
+                  {nextProject.title} &rarr;
                 </div>
-                <ArrowRight
-                  size={16}
-                  className="group-hover:translate-x-1 transition-transform"
-                />
               </Link>
             ) : (
               <div />

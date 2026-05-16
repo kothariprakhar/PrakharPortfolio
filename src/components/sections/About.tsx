@@ -1,58 +1,9 @@
-"use client";
-
 import Image from "next/image";
-import { useRef } from "react";
-import { motion, useInView, useSpring, useMotionValue, useTransform } from "framer-motion";
-import { Cpu, Rocket, Building2, GraduationCap } from "lucide-react";
-import { SectionWrapper } from "@/components/layout/SectionWrapper";
-import { SectionHeading } from "@/components/ui/SectionHeading";
+import { SectionTight } from "@/components/layout/SectionWrapper";
+import { SectionTitleInline } from "@/components/ui/SectionHeading";
 import { STATS, JOURNEY } from "@/lib/constants";
 
-const iconMap: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
-  Cpu,
-  Rocket,
-  Building2,
-  GraduationCap,
-};
-
-// Text reveal component — words fade in with stagger on scroll
-function RevealText({ text, className }: { text: string; className?: string }) {
-  const words = text.split(" ");
-
-  const containerVariants = {
-    hidden: {},
-    visible: {
-      transition: { staggerChildren: 0.03 },
-    },
-  };
-
-  const wordVariants = {
-    hidden: { opacity: 0.15, y: 6 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.4, ease: "easeOut" as const },
-    },
-  };
-
-  return (
-    <motion.p
-      variants={containerVariants}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, amount: 0.5 }}
-      className={className}
-    >
-      {words.map((word, i) => (
-        <motion.span key={i} variants={wordVariants} className="inline-block mr-[0.3em]">
-          {word}
-        </motion.span>
-      ))}
-    </motion.p>
-  );
-}
-
-function StatCounter({
+function Stat({
   value,
   suffix,
   label,
@@ -63,110 +14,74 @@ function StatCounter({
   label: string;
   prefix: string;
 }) {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, amount: 0.5 });
-  const numValue = parseFloat(value);
-  const motionValue = useMotionValue(0);
-  const spring = useSpring(motionValue, { stiffness: 50, damping: 20 });
-  const display = useTransform(spring, (v: number) =>
-    numValue % 1 !== 0 ? v.toFixed(2) : Math.floor(v).toString()
-  );
-
-  if (isInView) {
-    motionValue.set(numValue);
-  }
-
   return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 10 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.5 }}
-      transition={{ duration: 0.5 }}
-      className="text-center p-4"
-    >
-      <div className="font-display font-bold text-2xl md:text-3xl text-text-primary">
-        <span className="text-accent-blue">{prefix}</span>
-        <motion.span>{display}</motion.span>
-        <span className="text-accent-blue">{suffix}</span>
+    <div className="border-t border-ink-300 pt-4">
+      <div className="font-display font-medium text-[40px] md:text-[48px] leading-none text-ink-900 tabular tracking-[-0.02em]">
+        <span className="text-clay-500">{prefix}</span>
+        {value}
+        <span className="text-clay-500">{suffix}</span>
       </div>
-      <p className="mt-2 text-text-muted text-xs md:text-sm">{label}</p>
-    </motion.div>
+      <p className="mt-3 font-ui text-[13px] leading-[1.45] text-ink-500 max-w-[28ch]">
+        {label}
+      </p>
+    </div>
   );
 }
 
-function JourneyCard({
-  icon,
+function JourneyEntry({
   title,
   description,
-  index,
 }: {
-  icon: string;
   title: string;
   description: string;
-  index: number;
 }) {
-  const Icon = iconMap[icon] || Cpu;
-
   return (
-    <motion.div
-      initial={{ opacity: 0, x: 30 }}
-      whileInView={{ opacity: 1, x: 0 }}
-      viewport={{ once: true, amount: 0.3 }}
-      transition={{ delay: index * 0.15, duration: 0.5 }}
-      className="relative pl-6 border-l-2 border-gradient-to-b from-accent-blue to-accent-purple bg-bg-secondary/50 backdrop-blur-sm rounded-r-2xl p-6 hover:bg-bg-tertiary/50 transition-colors duration-300"
-      style={{ borderImage: "linear-gradient(to bottom, var(--gradient-from), var(--gradient-to)) 1" }}
-    >
-      <div className="flex items-start gap-4">
-        <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-accent-blue/10 flex items-center justify-center">
-          <Icon size={20} className="text-accent-blue" />
-        </div>
-        <div>
-          <h3 className="font-display font-bold text-lg text-text-primary">{title}</h3>
-          <RevealText
-            text={description}
-            className="mt-2 text-text-secondary text-sm leading-relaxed"
-          />
-        </div>
-      </div>
-    </motion.div>
+    <article className="border-t border-ink-300 pt-5 pb-2">
+      <h3 className="font-display font-medium text-[20px] md:text-[22px] tracking-[-0.01em] text-ink-900">
+        {title}
+      </h3>
+      <p className="mt-3 font-prose text-[16px] leading-[1.6] text-ink-700">
+        {description}
+      </p>
+    </article>
   );
 }
 
 export function About() {
   return (
-    <SectionWrapper id="about">
-      <SectionHeading title="The Journey So Far" gradientWord="Journey" />
+    <SectionTight id="about">
+      <SectionTitleInline
+        title="About."
+        lead="Six years of building, in different shapes · engineer, PM, founder, student."
+      />
 
-      <div className="grid md:grid-cols-[380px_1fr] gap-12 md:gap-16">
-        {/* Left: Stats */}
-        <div className="md:sticky md:top-28 md:self-start">
-          {/* Avatar */}
-          <div className="w-28 h-28 mx-auto md:mx-0 rounded-full overflow-hidden ring-2 ring-accent-blue/20 shadow-[0_0_24px_var(--glow-accent)] mb-8">
+      <div className="grid grid-cols-12 gap-x-6 gap-y-12">
+        {/* Left: avatar + stats · single column, no sticky pin */}
+        <aside className="col-span-12 md:col-span-4 md:self-start">
+          <div className="w-24 h-24 rounded-full overflow-hidden ring-1 ring-ink-300 mb-8">
             <Image
               src="/avatar.png"
               alt="Prakhar Kothari"
-              width={112}
-              height={112}
+              width={96}
+              height={96}
               className="w-full h-full object-cover object-top"
               priority
             />
           </div>
-
-          <div className="grid grid-cols-2 gap-2">
+          <div className="flex flex-col gap-7">
             {STATS.map((stat) => (
-              <StatCounter key={stat.label} {...stat} />
+              <Stat key={stat.label} {...stat} />
             ))}
           </div>
-        </div>
+        </aside>
 
-        {/* Right: Journey cards */}
-        <div className="flex flex-col gap-6">
-          {JOURNEY.map((item, i) => (
-            <JourneyCard key={item.id} index={i} {...item} />
+        {/* Right: journey */}
+        <div className="col-span-12 md:col-span-7 md:col-start-6 flex flex-col gap-6">
+          {JOURNEY.map((item) => (
+            <JourneyEntry key={item.id} title={item.title} description={item.description} />
           ))}
         </div>
       </div>
-    </SectionWrapper>
+    </SectionTight>
   );
 }
