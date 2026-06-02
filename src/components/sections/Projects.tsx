@@ -83,15 +83,22 @@ function roleFor(type: string) {
   return "Engineer";
 }
 
+/**
+ * IDs already showcased visually in the ProductWork section above. We keep
+ * their case-study detail pages reachable, but skip the duplicate text row.
+ */
+const HIDE_FROM_LIST = new Set(["codevision", "play-based-learning"]);
+
 export function Projects() {
+  const items = PROJECTS.filter((p) => !HIDE_FROM_LIST.has(p.id));
   return (
     <SectionDefault id="projects">
-      <SectionTitleMarginal label="Selected Work">
-        A few things I&rsquo;ve built.
+      <SectionTitleMarginal label="Case Studies">
+        Deeper writeups of past work.
       </SectionTitleMarginal>
 
       <div className="relative border-b border-ink-300">
-        {PROJECTS.map((project, i) => (
+        {items.map((project, i) => (
           <ProjectRow key={project.id} project={project} index={i} />
         ))}
       </div>

@@ -4,7 +4,7 @@
     {
       "name": "portfolio-dev",
       "runtimeExecutable": "/usr/local/bin/node",
-      "runtimeArgs": ["/Users/prakharkothari/Documents/Portfolio/node_modules/next/dist/bin/next", "start"],
+      "runtimeArgs": ["/Users/prakharkothari/Documents/Portfolio/node_modules/next/dist/bin/next", "dev"],
       "autoPort": true
     }
   ]
