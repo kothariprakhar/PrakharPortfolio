@@ -68,20 +68,19 @@ export const EXPERIENCE = [
   {
     id: "consultant",
     role: "Product Consultant",
-    company: "Zetwerk · Confidential Fintech Client (NDA)",
-    companyShort: "Zetwerk + 1 client (NDA)",
+    company: "Zetwerk · $3B+ Manufacturing Marketplace",
+    companyShort: "Zetwerk",
     period: "May 2023 – May 2025",
     location: "India & UK",
     contextNote: "Contract-only by design: UK post-study visa restricted full-time employment.",
     summary:
-      "Engaged by Zetwerk and a $4.5B digital bank on AI product strategy, procurement automation, and fintech features.",
+      "Engaged by Zetwerk on AI product strategy and procurement automation for a $3B+ manufacturing marketplace.",
     details: [
-      "Zetwerk ($3B+ manufacturing marketplace): Led product strategy for AI procurement engine — delivered 32% cycle time reduction in pilot cohort, with $80M+ efficiency unlock projected at full rollout",
+      "Led product strategy for an AI procurement engine; delivered 32% cycle-time reduction in the pilot cohort, with $80M+ efficiency unlock projected at full rollout",
       "Authored PRD for multimodal AI buyer-vendor matching using B-Rep Transformer-based 3D CAD parsing; ran 30+ stakeholder interviews to define 47 decision variables",
-      "Smart salary allocation feature for a $4.5B digital bank — drove 22% MAU increase in the first quarter post-launch",
-      "Shipped 5+ AI-powered features across engagements; primary focus on enterprise AI, automation, and fintech",
+      "Shipped AI-powered procurement features end-to-end, with a primary focus on enterprise AI and workflow automation",
     ],
-    technologies: ["AI/ML", "Product Strategy", "3D CAD Parsing", "Fintech", "Enterprise AI"],
+    technologies: ["AI/ML", "Product Strategy", "3D CAD Parsing", "Enterprise AI"],
     type: "work" as const,
   },
   {
