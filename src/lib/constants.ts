@@ -7,7 +7,7 @@ export const NAV_LINKS = [
 export const SOCIAL_LINKS = {
   linkedin: "https://www.linkedin.com/in/prakhar--kothari/",
   github: "https://github.com/kothariprakhar",
-  email: "prakhar.kothari@kellogg.northwestern.edu",
+  email: "kothariprakhar@gmail.com",
   resume: "/resume.pdf",
 } as const;
 
@@ -59,10 +59,11 @@ export const EXPERIENCE = [
     summary:
       "Pursuing joint MBA and AI degree with a 3.89 GPA (Dean's List). Coursework in Strategy, Applied AI, Deep Learning, and Data-Intensive Systems.",
     details: [
-      "Coursework: Strategy, Marketing, Applied AI for Business, Data-Intensive Systems, Deep Learning",
+      "Electives: Deep Learning, Applied AI for Business, Data-Intensive Systems, AI Agents, Strategy, Tech Product Management",
+      "Projects: Built AI products including a codebase intelligence platform, an API batching engine to cut costs, a multi-agent research pipeline leveraging A2A protocol and harness, internal AI tooling, and LLM-based applications — deepening expertise in prompt engineering, context management, agent orchestration, model evaluation, AI workflows, and developer tools",
       "Active member of Kellogg Technology Club, AI Club, Social Impact and Sustainability Club",
     ],
-    technologies: ["Deep Learning", "NLP", "Strategy", "Product Management"],
+    technologies: ["Deep Learning", "NLP", "Agent Orchestration", "Strategy", "Product Management"],
     type: "education" as const,
   },
   {
@@ -74,13 +75,14 @@ export const EXPERIENCE = [
     location: "India & UK",
     contextNote: "Contract-only by design: UK post-study visa restricted full-time employment.",
     summary:
-      "Engaged by Zetwerk on AI product strategy and procurement automation for a $3B+ manufacturing marketplace.",
+      "Shipped production AI retrieval and matching systems for a $3B+ manufacturing marketplace, owning product discovery through delivery across document intelligence, supplier matching, and observability.",
     details: [
-      "Led product strategy for an AI procurement engine; delivered 32% cycle-time reduction in the pilot cohort, with $80M+ efficiency unlock projected at full rollout",
-      "Authored PRD for multimodal AI buyer-vendor matching using B-Rep Transformer-based 3D CAD parsing; ran 30+ stakeholder interviews to define 47 decision variables",
-      "Shipped AI-powered procurement features end-to-end, with a primary focus on enterprise AI and workflow automation",
+      "Shipped a production AI retrieval system across 500K+ unstructured documents — PDFs, CAD drawings, technical specs, and supplier records — owning extraction, enrichment, and indexing workflows that powered LLM search and RAG across supplier data",
+      "Owned delivery of supplier matching and ranking engine with a 5-person Engineering/ML team, combining vector embeddings, comparable-job retrieval, and ranking signals to cut supplier shortlisting time by 32% and lift quote-to-award conversion by 28%",
+      "Led zero-to-one product discovery in enterprise procurement, conducting 35+ user interviews to identify high-value opportunities across document intelligence, retrieval, and ML recommendations, shaping a roadmap that generated $8M in incremental revenue",
+      "Developed project observability platform unifying procurement, inventory, and delivery signals into a single real-time view, enabling just-in-time inventory orchestration; drove adoption to 40+ enterprise clients and cut average lead times by 25%",
     ],
-    technologies: ["AI/ML", "Product Strategy", "3D CAD Parsing", "Enterprise AI"],
+    technologies: ["RAG", "Vector Embeddings", "LLM Search", "AI/ML", "Product Strategy", "Enterprise AI"],
     type: "work" as const,
   },
   {
@@ -91,31 +93,30 @@ export const EXPERIENCE = [
     period: "Jan 2023 – May 2025",
     location: "London, UK",
     summary:
-      "Co-founded a play-based learning platform. Led product strategy, development, and pilot across 10+ schools.",
+      "Co-founded an EdTech venture at Imperial College London. Led product strategy, discovery, and pilot across 10+ primary schools.",
     details: [
-      "Led market research and 100+ user interviews to define product strategy",
-      "Built play-based learning platform with peer networks and personalized progress tracking",
-      "Piloted across 10+ primary schools (700 students), achieving 45% DAU/MAU and 35% improvement in math proficiency",
+      "Co-founded an EdTech venture incubated at Imperial College London; led market research, competitive analysis, user journey mapping, and 50+ user interviews to define product strategy, MVP scope, and success metrics for a play-based learning platform",
+      "Led pilots across 10+ primary schools serving 700 students, using user feedback loops and A/B testing to prioritize features across peer learning and progress tracking, achieving 45% DAU/MAU and improving math proficiency by 35%",
     ],
-    technologies: ["React", "Node.js", "EdTech", "User Research"],
+    technologies: ["React", "Node.js", "EdTech", "User Research", "A/B Testing"],
     type: "work" as const,
   },
   {
     id: "leenaai",
     role: "Product Manager (transitioned from Senior Software Developer)",
-    company: "Leena AI — Series B, Bessemer-backed HR-Tech Startup",
+    company: "Leena AI — Series B, Bessemer-backed B2B HR-Tech Startup, Gartner Leader",
     companyShort: "Leena AI",
     period: "Jan 2021 – Oct 2022",
-    location: "Gurugram, India",
+    location: "Delhi NCR, India",
     summary:
-      "Led flagship products from 0→1 and 1→N, scaling to $5M ARR and 90+ enterprise clients globally.",
+      "Transitioned from Senior Software Developer to PM. Led flagship products from 0→1 and 1→N, scaling to $5M ARR and 90+ enterprise clients globally.",
     details: [
-      "Led Employee Engagement product from conception to $5M ARR in 10 months across 90+ enterprises",
-      "Owned HR virtual assistant v2.0 roadmap, shipping 25+ features for $3M new annual revenue and 1.5M users",
-      "Partnered with 4 Fortune 500 clients on NLP-based attrition prediction; co-developed model with $15M in savings modeled across pilot cohort",
-      "Prototyped onboarding flows that cut completion time by 48%",
-      "Architected microservices for 250% user growth; reduced API response times by 40%, 99.9% uptime",
-      "Built enterprise component library of 150+ reusable components, accelerating development by 60%",
+      "Led product discovery, competitive analysis, roadmap definition, and go-to-market strategy for Employee Engagement and Surveys, presenting recommendations for executive buy-in and scaling the product to $2M ARR in 10 months across 90+ global enterprises",
+      "Owned roadmap prioritization for the flagship HR virtual assistant v2.0, leading a 10-member cross-functional team across Engineering, Design, and Business and authoring PRDs for 25+ features that drove $3M in annual revenue and added 1.5M new users",
+      "Defined the business case and ML roadmap for an NLP-driven attrition prediction offering for 2 Fortune 500 clients, translating workforce data and employee feedback into a retention-focused solution projected to deliver $15M+ in savings",
+      "Identified onboarding friction through 25+ customer discovery sessions and prototyped new employee onboarding flows that reduced completion time by 48%, securing executive buy-in for roadmap prioritization",
+      "Re-architected the platform into scalable microservices to support 250% user growth, introducing caching and database performance improvements that cut API response times by 40% and maintained 99.9% uptime during peak demand",
+      "Developed an enterprise-grade design system with 150+ reusable components in collaboration with UX research, speeding up feature development by 60% while standardizing user experience across products",
     ],
     technologies: ["NLP", "Python", "React", "Microservices", "AWS", "Product Strategy"],
     type: "work" as const,
@@ -128,11 +129,10 @@ export const EXPERIENCE = [
     period: "Dec 2018 – Dec 2020",
     location: "Bengaluru, India",
     summary:
-      "Full-stack development supporting growth from 40K to 500K subscribers. Built analytics features driving 120% engagement increase.",
+      "Full-stack development supporting subscriber growth from 40K to 500K. Built analytics features driving 120% engagement increase.",
     details: [
-      "Developed end-to-end features across authentication, content, onboarding, and payments",
-      "Automated CI/CD pipelines supporting 12x subscriber growth in 6 months",
-      "Built progress analytics dashboard increasing student engagement by 120%",
+      "Built and iterated end-to-end features to enhance core web and mobile product experiences across authentication, content, onboarding, and payments; automated CI/CD pipelines supporting subscriber growth from 40K to 500K in 6 months",
+      "Led user research, SQL-based product analytics, and data pipeline development to define use cases and launch a progress analytics dashboard, increasing student engagement by 120%",
     ],
     technologies: ["TypeScript", "React", "CI/CD", "Analytics", "Full-Stack"],
     type: "work" as const,
@@ -341,18 +341,18 @@ export const PROJECTS = [
   {
     id: "employee-engagement",
     title: "Employee Engagement & Surveys Platform",
-    subtitle: "0 → $5M ARR in 10 months",
+    subtitle: "0 → $2M ARR in 10 months",
     type: "Product" as const,
     description:
       "Led the full product lifecycle from conception to launch and scale of an enterprise engagement platform.",
     problem: "Organizations lacked real-time insight into employee sentiment and engagement drivers.",
     approach: "Drove customer discovery, competitive analysis, roadmap definition, and go-to-market strategy.",
-    outcome: "$5M ARR in 10 months, adopted by 90+ enterprises globally.",
+    outcome: "$2M ARR in 10 months, adopted by 90+ enterprises globally.",
     technologies: ["Product Strategy", "Analytics", "Enterprise SaaS"],
     featured: false,
     caseStudy: {
       heroMetrics: [
-        { value: "$5M", label: "ARR in 10 Months" },
+        { value: "$2M", label: "ARR in 10 Months" },
         { value: "90+", label: "Enterprise Clients" },
         { value: "0→1", label: "Built from Scratch" },
       ],
@@ -371,7 +371,7 @@ export const PROJECTS = [
           bullets: [
             "20+ CHRO interviews across industries",
             "Competitive teardown of Culture Amp, Glint, Peakon, Lattice, 15Five, Officevibe",
-            "Prototyped NLP-based attrition prediction with Fortune 500 partner",
+            "Prototyped NLP-based attrition prediction with 2 Fortune 500 clients",
             "Defined 3-phase roadmap: Launch → Grow → Differentiate",
           ],
         },
@@ -381,9 +381,9 @@ export const PROJECTS = [
         },
         {
           heading: "Results & Impact",
-          content: "The platform reached $5M ARR within 10 months of launch, adopted by 90+ enterprises. Response rates averaged 72% — nearly double the industry benchmark — driven by the conversational survey format via the virtual assistant.",
+          content: "The platform reached $2M ARR within 10 months of launch, adopted by 90+ enterprises. Response rates averaged 72% — nearly double the industry benchmark — driven by the conversational survey format via the virtual assistant.",
           metrics: [
-            { value: "$5M", label: "ARR achieved in 10 months (delivered)" },
+            { value: "$2M", label: "ARR achieved in 10 months (delivered)" },
             { value: "90+", label: "Enterprise clients onboarded (delivered)" },
             { value: "72%", label: "Survey response rate (vs. 35% industry avg)" },
             { value: "$15M", label: "Attrition savings (modeled with Fortune 500 partner)" },
